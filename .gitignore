@@ -10,5 +10,5 @@
 *.toc
 *.out
 main.pdf
-*.xbb
 *.synctex.gz
+*.xbb

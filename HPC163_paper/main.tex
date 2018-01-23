@@ -3,10 +3,6 @@
 %\footnotesize
 %\small
 
-% 最後に句読点の変換を行うこと。全角ー＞全角
-%	。を．
-%	、を，
-
 %\documentclass[submit,techrep]{ipsj}
 %\documentclass[submit,techrep,noauthor]{ipsj}
 \documentclass[submit,techrep,noauthor]{ipsj}
@@ -46,7 +42,6 @@ showtabs=false,
 
 
 \begin{document}
-
 
 \title{PMlibを用いた計算性能測定と性能可視化手法}
 
@@ -92,6 +87,10 @@ PMlibは数値計算上の計算量を明示的に測定する機能と、HWPC�
 \maketitle
 
 %1
+{ \color{blue}
+最後に句読点の変換を行うこと。全角。ー＞全角．に、また全角、ー＞全角，に\\
+}
+
 \section{はじめに}
 研究の目的
 
@@ -163,40 +162,38 @@ HWPC測定には内部でPAPI低レベルAPIを利用し、
 
 \subsection {計算科学的観点での性能}
 \label{subsection:scientific-perf}
-計算量という用語を用いる場合、計算科学アプリケーションの開発者は
+計算量という用語を用いる場合、計算科学アプリケーションの開発者は、
 Fortran言語やC++言語などで記述されたソースプログラム上で計上される
-数値計算量をアプリケーションの計算量として認識することが多い。
-計算科学的観点での計算性能とはこの計算量を計算経過時間で割った値として
-定義される。
-
-{ \color{blue}
-以下式（単純結合式）は整理した後で書き直すこと。
-}
+数値計算量すなわち演算回数の合計値を
+アプリケーションの計算量として認識することが多い。
+計算量\begin{math} OP \end{math}は以下の式で表わされる。
 %	\begin{math}
 %	\end{math}
-%	\[
-%	\]
+%単純結合式
 \begin{align*}
-Vol_{source} = \#add + \#mult + \#sub + \#div \\
-	+ \#sqrt + \#max + ...
+OP_{source} = \#add + \#sub + \#mult + \#div \\
+	+ \#max + \#sqrt + ...
 \end{align*}
+
+計算性能はこの計算量を計算経過時間で割った値として定義される。
 \begin{align*}
-Perf_{source} = Vol_{source} / Time	% \div はあまり見た目が良くない、、、
+Perf_{source} = OP_{source} / Time	% \div はあまり見た目が良くない、、、
 \end{align*}
 
 ソースプログラムで記述される
 平方根・三角関数といった数学関数ではそれぞれに計算の「重たさ」が異なる
 ことは良く認識されているが、
-四則演算や最小最大などの基本的な演算の「重たさ」も相当に異なることは
-しばしば看過されがちである。
+四則演算や最小最大などの基本的な演算の「重たさ」も演算の種類によって
+相当に異なることに注意しなければならない。
+演算の「重たさ」を係数
+\begin{math} c_{op} \end{math}
+として考慮すると、計算量は以下の式で表すことができる。
 
-{ \color{blue}
-以下式（線形結合式）も整理した後で書き直すこと。
-}
+% OP_{system}
 \begin{align*}
-Vol_{system} =
-	c_{1}\times \#add + c_{2}\times \#mult + c_{3}\times \#sub \\
-	+ c_{4}\times \#div + c_{5}\times \#sqrt + c_{6}\times \#max
+OP_{weight} =
+	c_{add}\times \#add + c_{sub}\times \#sub + c_{mult}\times \#mult \\
+	+ c_{div}\times \#div + c_{max}\times \#max + c_{sqrt}\times \#sqrt + ...
 \end{align*}
 
 HPCアプリケーションにおいて
@@ -204,16 +201,15 @@ HPCアプリケーションにおいて
 必要な計算量を削減するアルゴリズムを開発・採用するというアプローチ
 が多いが、そのような場合の計算量とは主に上記した
 計算科学的観点での評価が意図される。
+このような計算科学的観点での計算性能を以降数値計算性能と呼ぶことにする。
 
 HPCシステムの性能評価に長く利用されてきたLinpack（HPCC）が出力する
 Gflops値も加算・乗算の「重たさ」を１として上記結合式を評価した
-で求めている。
-\[
-Perf_{source} = Vol_{source} / Time
-\]
-\[
+計算量から、計算性能を次式で求めている。
+\begin{align*}
 Gflops = N^{2} \times ( 2/3 * N + 3/2 ) \times 1.0^{-9} / Time 
-\]
+\end{align*}
+
 
 
 \subsection {システム評価的観点での性能}
@@ -222,17 +218,13 @@ Gflops = N^{2} \times ( 2/3 * N + 3/2 ) \times 1.0^{-9} / Time
 アプリケーションをHPCシステム上で実行する段階では、
 ソースプログラムを言語コンパイラを通して生成した実行プログラムの
 機械語命令列としてスケジューリング処理することになる。
-
 ソースプログラムでは単純な計算式であっても、実際に実行されるのは
-複数の命令列であり、計算量（例えば浮動小数点演算量）として
-測定した場合、計算科学的観点での計算量と比較して多くなる。
+複数の命令列であり、命令の種類・量・命令に対応する計算量（演算数）は、
+実行するHPCシステムのアーキテクチャおよびコンパイラなど
+言語処理系ソフトウエアの最適化水準に依存する部分が大きい。
 
 HPCシステムが実際に処理するこの計算量を経過時間で割った値が
 システム評価的観点での計算性能として定義される。
-
-実行するHPCシステムのアーキテクチャおよびコンパイラなど
-言語処理系ソフトウエアの最適化水準に依存する部分が大きく、
-いわゆるシステム性能に主眼がおかれた文脈で使用されることが多い。
 
 この計算量を測定するためには、HPCシステムに通常装備されている
 HWPC(Hardware Performance Counter)に記録されるイベントカウント数
@@ -246,26 +238,19 @@ HWPC(Hardware Performance Counter)に記録されるイベントカウント数
 { \color{blue}
 線形結合式\\
 \begin{math}
-Vol_{hwpc} = ****************
+OP_{hwpc} = ****************
 \end{math}\\
 ... HWPCベースの計算式を構築
 }
+以下このように測定される計算量をHWPC計算量とよび、HWPC計算量を基準とした
+計算性能をHWPC計算性能と呼ぶことにする。
+いわゆるシステム性能に主眼がおかれた文脈で使用されることが多い。
 
-HWPCを基にした（表面的な）システムの実行性能は非常に高く表示されるが、
+HWPC測定性能が非常に高く表示されるにもかかわらず、
 数値計算上の性能は非常に低いという状況は、
-前節 \ref{subsection:scientific-perf}で述べた計算量についての
-定義の違い、および本節 \ref{subsection:system-perf}で述べた
-ハードウエアの有効利用の状況の双方の影響を受けた結果であるといえる。
-
-このような計算量についての定義の違いから発生する本質的な問題である。
-
-
-
-LinpackのFLOPSはソースで直接定義
-
-
-rooflinemodel
-
+本節で述べた観点が違う事による計算量の定義の違い、
+およびハードウエアの有効利用の状況、
+の双方の影響を受けた結果であるといえる。
 
 
 \section{PMlib}
@@ -274,29 +259,66 @@ rooflinemodel
 
 PMlibはアプリケーションの計算性能モニター用のクラスライブラリであり、
 オープンソースソフトウエアとして公開されている。
-\cite{PMlib1:webpage} \cite{PMlib2:webpage} 
-{ \color{blue}
-（\\citeはどちらのWebページの方が良いか？）
-}
-PMlibは前述した２種類の計算量と計算性能を測定する機能を持つ。
-C++およびFortranプログラムから呼び出して利用することができる。
+\cite{PMlib1:webpage} \par
+\cite{PMlib2:webpage} \par
+{ \color{blue} \par
+（citeはどちらのWebページの方が良いか？）
+} \par
+PMlibは前述した２種類の計算性能（数値計算性能とHWPC計算性能）
+を測定する機能を持つ。
+アプリのソース中に測定区間を指定して、
+測定区間毎の統計情報をアプリ終了時・あるいは計算途中の指定位置で出力する。
 
-アプリのソース中に測定区間を指定して、アプリ終了時・あるいは計算途中で
-統計情報を出力する方式で該当区間の計算性能を読み取る。
+数値計算性能を測定するためには該当区間の計算量を明示的な評価式の形で
+PMlib APIへ引数として渡す。
+測定区間は区間の名称、測定計算量の種類（演算量｜データ移動量）、
+排他性（排他的｜非排他的）、蓄積計算量からなる少数の属性を持つ。
+アプリ終了時の出力レポートに測定区間単位、プロセス単位、アプリ単位での
+計算性能が表示される。
+出力する情報の内容はアプリ実行時のオプションとして環境変数を指定する事によ
+り制御される。
+HWPC計算性能を測定する場合は計算量の種類・蓄積計算量はPMlib
+内部で自動的に決定・積算されるため、PMlib APIへ引数として渡される値は
+用いられない。
 
-計算科学的観点での計算性能を測定したい場合は、
-PMlib APIの引数として該当区間の計算量を変数式で明示的に指定する。
-システム評価的観点での計算性能を測定したい場合は、
+\subsection {PMlib APIの利用}
+PMlibはC++およびFortranプログラムから呼び出して利用することができる。
+
+以下の\lstlistingname \ref{listing1}はPMlib APIを利用するFortranソースプログラムの例である。
+
+{ \color{blue} \par
+lstlistingのcaptionは思い通りについてくれないので手を抜いてみるw \\
+が、利用プログラム例はもう少しまともなコードの方が良いか、、、
+} \par
+%\begin{lstlisting}[caption={FortranプログラムへのPMlib組み込み例},label={listing1},captionpos=b]
+\begin{lstlisting}[caption={\hfill},label={listing1},captionpos=t]
+program main
+call f_pm_initialize (nWatch)
+call f_pm_setproperties ("Section1" icalc, iexcl)
+call f_pm_start ("Section1")
+call mykernel (fops)
+call f_pm_stop ("Section1", fops, ncall)
+call f_pm_print ("", isort)
+call f_pm_printdetail ("", ilegend, isort)
+end
+\end{lstlisting}
+
+数値計算上の計算性能を測定したい場合は、
+PMlib APIの引数として該当区間の計算量を変数式で明示的に指定して積算する。
+計算の種類ごとの「重たさ」を全て1.0と設定すると、ソースプログラムに
+記述された計算式の全計算回数を数え上げる事に等しい。
+
+HWPC測定値を基準とした（システム評価的観点での）計算性能を測定したい場合は、
 該当区間のHWPCイベント統計情報をPMlibに自動的に読み取らせる。
 HWPCの読み取りには内部でPAPI低レベルAPIを利用し、
-一般に選択と解釈が容易ではない各種ハードウエアイベント統計情報を
+選択と解釈が一般には容易ではない各種ハードウエアイベント統計情報を
 カテゴリ分けしてアプリ利用者が評価しやすい情報として選択出力する。
 
 { \color{blue} \par
 発表時のスライドでは橋本ツールと連携した組み込み手順のフローを紹介する。
 \par }
 
-プロセス単位で性能情報を取得する設計となっていて、
+PMlibではプロセス単位で性能情報を取得する設計となっていて、
 プロセスがOpenMPスレッドを発生する場合、各スレッドの性能情報は帰属する
 プロセスに集計される。
 
@@ -328,96 +350,61 @@ PMlibの出力として、標準出力や指定ファイルへのテキストレ
 
 \subsection{関連する性能評価ツールと関連研究}
 
-
-{ \color{blue} \par
-各ツールにciteが必要かな
-\par }
-
-\begin{verbatim}
-オープンソース性能統計ツール類 {
-Gprof: 簡易機能、コンパイラに制約
-Scalasca: 高機能、Score-P共通インフラ
-Extrae : トレース生成
-PAPI : HWPCへのアクセス
-Linux perf tools : HWPCへのアクセス
-}
-ベンダーツール {
-X86系では
-Intel Vtune : X86
-PGI profiler : X86
-富士通プロファイラ : Sparc64系
-}
-
+HPCシステム向けに様々な性能評価のためのツールが公開あるいは販売されている。\par
+オープンソース性能評価ツール類としては
+\begin{itemize}
+	\item Gprof: 簡易機能、コンパイラに制約
+	\item Scalasca \cite{Scalasca:2017} : トレース生成、Score-P共通インフラ
+	\item Extrae \cite{Extrae:webpage} : トレース生成
+	\item PAPI \cite{PAPI:5.6} : HWPCへのアクセス
+	\item Linux perf tools : HWPCへのアクセス
+\end{itemize}
+ベンダーが提供する性能評価ツール類としてはX86系では 
+\begin{itemize}
+		\item Intel VTune \cite{Intel:VTune}, PGI Profiler \cite{PGI:Profiler}
+\end{itemize}
+また各HPCシステムは通常専用の性能評価ツールを装備している。
+\begin{itemize}
+	\item FX100システムでは富士通プロファイラなど
+\end{itemize}
 それぞれに特徴があり、
-ベンダー製品の性能計測・統計ツールは{
-	○豊富な機能が統合化されたインタフェイス
-	○パッケージの完成度が高く、インストールが容易
-	○ 詳しいドキュメント、ベンダーによるサポート、安心感
-	△一般に高価格で相当の習熟期間が必要
-	△選択できるツールがシステム毎に制限される
-}
-オープンソースの性能計測・統計ツールは{
-	○各ツール毎に特徴・機能が明確
-	○様々なシステムへの移植可能
-	○価格の心配が不要
-	△ユーザーインタフェイスが個性的
-	△ものによりインストール・利用がそれなりに大変
-}
-\end{verbatim}
+ベンダー製品のツールはパッケージが統合化されて完成度が高い反面、
+利用できるシステムが制限され、相当の習熟期間が必要となる。
+オープンソースのツールは様々なシステムへの移植が可能であるが、
+各ツール毎に特徴・機能が明確で複数のツールを組み合わせて使う場合が多い。
 
-既存ツールはほぼ全てが
-サンプリングあるいはトレーシングによる測定で、性能の根拠は
-HWPC情報を利用している
+特筆すべき点は、これら既存のツールはほぼ全てが評価の基準を、
+システム評価的観点での性能すなわちHWPC測定性能に拠っていることである。
+
 
 \section{PMlibを用いた性能測定と分析例}
 
-
 \subsection{PMlibを用いた性能測定方法}
 
-{ \color{blue}
+{ \color{blue} \par
+PMlibでどのような分析ができるか \par
+・HWPCベースでのアーキテクチャの有効利用状況 \par
+・・使いやすい用にグループ化した統計出力 \par
+・・SSE/AVX系命令の実行比率 \par
+・・・ー＞SIMD機構の有効利用の確認 \par
+・・キャッシュヒット率 \par
+・・・ー＞コンパイラがどれだけ賢くコンピュータの能力を引き出しているか評価ができる \par
+・・・ー＞コンパイラオプションの選択、指示行の指定などで、どのような効果が現れるか \par
+・ピーク性能に対する実効性能比を裏付けてみる \par
+
 発表スライドではCCA/EBT、OTF、HWPC(PAPI)を説明。そこに力点をおくとよい\\
-}
-
-（３）PMlibでどのような分析ができるか
-・演算の種類毎に処理の「重たさ」を評価
-・・浮動小数点四則演算、平方根や三角関数などの基本計算
-・・・ー＞コンピュータが見かけ上発揮する実行性能と、実際の数値計算性能との定量的な比較ができる
-・・・ー＞アプリのコーディングの指針に使える
-・HWPCベースでのアーキテクチャの有効利用状況
-・・使いやすい用にグループ化した統計出力
-・・SSE/AVX系命令の実行比率
-・・・ー＞SIMD機構の有効利用の確認
-・・キャッシュヒット率
-・・・ー＞コンパイラがどれだけ賢くコンピュータの能力を引き出しているか評価ができる
-・・・ー＞コンパイラオプションの選択、指示行の指定などで、どのような効果が現れるか
-
-・ピーク性能に対する実効性能比を裏付けてみる
-
-{ \color{blue}
 Skylakeの例で示すといい\\
 ルーフラインモデルを示し、実測との比較を見るとよい\\
-}
+} \par
 
-以下の\lstlistingname \ref{listing1}はPMlib APIを利用するFortranソースプログラムの例である。
+性能測定には以下のプログラムを用いた
+\begin{itemize}
+\item{基本的な演算}
+\item{STREAM}
+\end{itemize}
 
-%lstlistingのcaptionは思い通りについてくれないので手を抜いてみるw
-%\begin{lstlisting}[caption={FortranプログラムへのPMlib組み込み例},label={listing1},captionpos=b]
-%	\begin{lstlisting}[caption=strangeeffect,captionpos=t]
-\begin{lstlisting}[caption={\hfill},label={listing1},captionpos=t]
-program main
-call f_pm_initialize (nWatch)
-call f_pm_setproperties ("Koko!" icalc, iexcl)
-call f_pm_start ("Koko!")
-call mykernel (msize,n,a,b,c)
-call f_pm_stop ("Koko!", fops, ncall)
-call f_pm_print ("", isort)
-call f_pm_printdetail ("", ilegend, isort)
-end
-\end{lstlisting}
 
-\subsection{PMlibを用いた測定例}
-
-\subsubsection{性能測定の条件}
+\subsubsection{性能測定プラットフォーム}
 
 測定には以下のHPCシステムを用いた。
 \begin{itemize}
@@ -458,12 +445,6 @@ Mem GB/s/[CMGcpu]	&	120/R+120/W	&	128	\\ \hline
 \#cores/[CMGcpu]	&	16	&	20	\\ \hline
 \end{tabular}
 \end{table}
-
-性能測定には以下のプログラムを用いた
-\begin{itemize}
-\item{基本的な演算}
-\item{STREAM}
-\end{itemize}
 
 
 \subsubsection{基本的な演算性能の評価}
@@ -516,6 +497,71 @@ c(i)=1.0/sqrt(a(i)**2+b(i)**2) ! 他同様
 \end{itemize}
 
 
+この演算カーネルの測定をループ長
+\begin{math}
+n=1,2,4,..,2^{26}
+\end{math}
+に対してFX100で実行した結果を図 \ref{fig:fx100-gflops-long-R8}に示す。
+表示しているのは数値計算上の性能である。
+nの増加に連れてなだらかに性能が向上し、L1キャッシュ容量に収まる範囲で
+最も高い性能に達し、その後L2キャッシュ容量の範囲内で、ついでメモリ
+からのバンド幅で律速されるラインに落ち着くという全体傾向は
+従来の多数の研究結果と重なる。
+
+{\color{blue} \par
+これに関する参考論文はどれにする？
+rooflineモデルと関連つけるのがよいか？
+} \par
+
+同じカーネルに対して
+nを1から128の範囲で連続的に変化させて測定した結果を
+図 \ref{fig:fx100-gflops-short-R8}に示す。
+Perfが単調に増加するのではなく、nが４の倍数のタイミングで規則的に
+向上する変動がみられ、
+4n,4n+1,4n+2,4n+3と低下した後、4(n+1)で再び向上する。
+
+\begin{figure}[tb]
+\centering\includegraphics[width=0.45\textwidth]{figs/fx100-gflops-long-R8}
+\caption{fx100-gflops-long-R8}
+\label{fig:fx100-gflops-long-R8}
+\end{figure}
+
+\begin{figure}[tb]
+\centering\includegraphics[width=0.45\textwidth]{figs/fx100-gflops-short-R8}
+\caption{fx100-gflops-short-R8}
+\label{fig:fx100-gflops-short-R8}
+\end{figure}
+
+%\begin{figure}[tb]
+%\centering\includegraphics[width=0.45\textwidth]{figs/}
+%\caption{}
+%\label{fig:}
+%\end{figure}
+
+この
+図 \ref{fig:fx100-gflops-short-R8}
+と同じ条件での、
+HWPC測定性能を表示すると
+図 \ref{fig:fx100-HWPC-short-R8}
+の様になる。
+{\color{blue} \par
+予想としては：4n,4n+1,4n+2,4n+3の性能が全く同じだろうと思う。
+
+今日まだ測定できていないので、とりあえず仮の図にしてある。
+差し替えた上で、
+図 \ref{fig:fx100-HWPC-short-R8}
+についての解釈を書く。
+
+} \par
+
+
+
+
+\begin{figure}[tb]
+\centering\includegraphics[width=0.45\textwidth]{figs/fx100-HWPC-short-R8}
+\caption{fx100-HWPC-short-R8}
+\label{fig:fx100-HWPC-short-R8}
+\end{figure}
 
 
 
@@ -590,7 +636,11 @@ note STREAM:Intel compilerでCache Eviction Levelオプションの指定効果�
 \section{謝辞}
 京補助金についての謝辞
 
+%\cite{webpage2} \par
+%\cite{webpage3} \par
+
 \bibliographystyle{jplain}
 \bibliography{main}
+%\bibliography{bibsample}
 \end{document}
 
