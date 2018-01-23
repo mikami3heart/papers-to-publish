@@ -505,8 +505,8 @@ n=1,2,4,..,2^{26}
 表示しているのは数値計算上の性能である。
 nの増加に連れてなだらかに性能が向上し、L1キャッシュ容量に収まる範囲で
 最も高い性能に達し、その後L2キャッシュ容量の範囲内で、ついでメモリ
-からのバンド幅で律速されるラインに落ち着くという全体傾向は
-従来の多数の研究結果と重なる。
+からのバンド幅で律速されるラインに落ち着くという全体傾向は、
+従来の多数の関連研究結果と重なるものである。
 
 {\color{blue} \par
 これに関する参考論文はどれにする？
@@ -515,10 +515,25 @@ rooflineモデルと関連つけるのがよいか？
 
 同じカーネルに対して
 nを1から128の範囲で連続的に変化させて測定した結果を
-図 \ref{fig:fx100-gflops-short-R8}に示す。
+図 \ref{fig:fx100-gflops-short-R8}に、
+さらに1から50の範囲をクローズアップした結果を
+図 \ref{fig:fx100-gflops-closeup-R8}に示す。
+
 Perfが単調に増加するのではなく、nが４の倍数のタイミングで規則的に
 向上する変動がみられ、
 4n,4n+1,4n+2,4n+3と低下した後、4(n+1)で再び向上する。
+
+この
+図 \ref{fig:fx100-gflops-closeup-R8}に示す。
+と同じ条件で実行したアプリのHWPC測定性能を表示すると
+図 \ref{fig:fx100-HWPC-closeup-R8}の様になる。
+
+{\color{blue} \par
+今日まだ測定できていないので、とりあえず仮の図にしてある。
+予想としては：4n,4n+1,4n+2,4n+3の性能がフラットになるだろうと思う。
+差し替えた上で解釈を書く。
+
+} \par
 
 \begin{figure}[tb]
 \centering\includegraphics[width=0.45\textwidth]{figs/fx100-gflops-long-R8}
@@ -532,35 +547,16 @@ Perfが単調に増加するのではなく、nが４の倍数のタイミング
 \label{fig:fx100-gflops-short-R8}
 \end{figure}
 
-%\begin{figure}[tb]
-%\centering\includegraphics[width=0.45\textwidth]{figs/}
-%\caption{}
-%\label{fig:}
-%\end{figure}
-
-この
-図 \ref{fig:fx100-gflops-short-R8}
-と同じ条件での、
-HWPC測定性能を表示すると
-図 \ref{fig:fx100-HWPC-short-R8}
-の様になる。
-{\color{blue} \par
-予想としては：4n,4n+1,4n+2,4n+3の性能が全く同じだろうと思う。
-
-今日まだ測定できていないので、とりあえず仮の図にしてある。
-差し替えた上で、
-図 \ref{fig:fx100-HWPC-short-R8}
-についての解釈を書く。
-
-} \par
-
-
-
+\begin{figure}[tb]
+\centering\includegraphics[width=0.45\textwidth]{figs/fx100-gflops-closeup-R8}
+\caption{fig:fx100-gflops-closeup-R8}
+\label{fig:fx100-gflops-closeup-R8}
+\end{figure}
 
 \begin{figure}[tb]
-\centering\includegraphics[width=0.45\textwidth]{figs/fx100-HWPC-short-R8}
-\caption{fx100-HWPC-short-R8}
-\label{fig:fx100-HWPC-short-R8}
+\centering\includegraphics[width=0.45\textwidth]{figs/fx100-HWPC-closeup-R8}
+\caption{fig:fx100-HWPC-closeup-R8}
+\label{fig:fx100-HWPC-closeup-R8}
 \end{figure}
 
 
