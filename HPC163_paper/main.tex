@@ -46,18 +46,20 @@ showtabs=false,
 \title{PMlibを用いた計算性能測定と性能可視化手法}
 
 \affiliate{AICS}{理化学研究所 計算科学研究機構}
-\affiliate{Kyushu}{九州大学 情報基盤研究開発センター}
+\paffiliate{Kyushu}{九州大学 情報基盤研究開発センター}
 
 \author{三上 和徳}{Kazunori Mikami}{AICS}[kazunori.mikami@riken.jp]
-\author{小野 謙二}{Kenji Ono}{Kyushu}
+\author{小野 謙二}{Kenji Ono}{AICS,Kyushu}[keno@cc.kyushu-u.ac.jp]
 
 \begin{abstract}
 オープンソースライブラリPMlib
 を用いたアプリケーションの性能評価手法について報告する。
 HPCシステムの仕様上の最大計算性能と
-アプリケーション実行時に達成される実行性能との違いが頻繁に指摘される。
-この違いを議論する場合には、演算器の並列性やメモリ階層における局所性確保などの
-ハードウエアの動作特性を中心に評価する視点と、
+アプリケーション実行時に達成される実行性能との間には、様々な要因により
+乖離が生じる。
+この違いを議論する場合には、演算器の並列性やメモリ・キャッシュ各階層間
+のデータ移動性能などのハードウエアの動作特性を中心に評価する視点と、
+%局所性の確保はソフトウエアの話なのですか？
 アプリケーションがソースプログラムレベルで要求する数値計算上の計算量と
 コンピュータシステムが実際に実行する命令に基づいた計算量との違いを
 評価する視点の双方が必要である。
@@ -67,15 +69,12 @@ PMlibは数値計算上の計算量を明示的に測定する機能と、HWPC�
 またHWPC測定時には内部でPAPI低レベルAPIを利用し、
 一般に選択と解釈が容易ではない各種ハードウエアイベント統計情報を
 カテゴリ分けしてアプリ利用者が評価しやすい情報として選択出力する。
-
-{ \color{blue}
-出力情報としてはアプリ実行中に蓄積された統計情報を時間平均化した
-標準レポートに加え、
-経過時間軸に沿った動的な情報の出力も可能であり、
-計算性能の時系列挙動を可視化するWebブラウザパッケージとの連携利用
-が可能な構成となっている。（この部分は次回報告にまわす）
-}
-
+%
+%	出力情報としてはアプリ実行中に蓄積された性能統計情報を時間平均化した
+%	標準レポートの他、
+%	性能統計情報を時系列出力してWebブラウザパッケージとの連携利用により
+%	可視化する機能を持つ。
+%
 これらの異なる基準での計算量・計算性能を評価することによって、
 アプリケーションのHPCシステムにおける実行性能発現を理解する
 一助とすることが可能である。
@@ -112,17 +111,12 @@ HPCシステムの仕様上の最大性能とアプリケーションが実際�
 で測定した計算量との間でもしばしば大きな乖離がある。
 この事は性能評価において重要な問題点として考慮されなければならない。
 
-{ \color{blue}
-例えば除算計算などはコンピュータシステムが実際に実行する命令ベースでの
-（HWPCによる見かけ上の）実行性能が非常に高く表示されるが、
-数値計算上（ソースプログラムで計上した）の計算量に基づく性能は一般に低い。
-}
-
 PMlibは数値計算上の計算量を明示的に測定する機能と、HWPCが記録する計算量を
 測定する機能とを有し、両者の違いを定量的に評価することを可能とする。
 HWPC測定には内部でPAPI低レベルAPIを利用し、
 一般に選択と解釈が容易ではない各種ハードウエアイベント統計情報を
 カテゴリ分けしてアプリ利用者が評価しやすい情報として選択出力する。
+
 出力情報としてはアプリ実行中に蓄積された統計情報を時間平均化した
 標準レポートに加え、
 経過時間軸に沿った動的な情報の出力も可能であり、
@@ -134,38 +128,16 @@ HWPC測定には内部でPAPI低レベルAPIを利用し、
 次に、計算量から計算性能を求める段階で、その性能を律速する
 ハードウエアの動作特性を読み取るPMlibの機能について事例を示す。
 
-{ \color{blue}
-性能情報の可視化については、次の機会に報告を行う???\\
-
-性能測定値を時刻歴測定して可視化することによって得られる、
-性能挙動の理解に与える効果については、次の機会に報告を行うことにする。
-以下のような分類で、その効果を紹介できればいい。
-\begin{itemize}
-%	\setlength{\itemindent}{-5mm}
-\item 静的な統計情報の可視化 - TRAiLとの連携
-	\begin{itemize}
-	\item ジョブの経過時間で平均化された値
-	\end{itemize}
-\item 動的な性能挙動の可視化 - TRAiLとの連携
-	\begin{itemize}
-	\item ジョブの経過時刻に沿った過渡的な挙動
-	\item プロセス毎の過渡的な挙動
-	\item プロセス間の計算負荷バランスの挙動
-	\end{itemize}
-\end{itemize}
-}
-
-
 
 
 \section {計算量と性能評価}
+\label{section:computing-volume}
 
 \subsection {計算科学的観点での性能}
 \label{subsection:scientific-perf}
 計算量という用語を用いる場合、計算科学アプリケーションの開発者は、
 Fortran言語やC++言語などで記述されたソースプログラム上で計上される
-数値計算量すなわち演算回数の合計値を
-アプリケーションの計算量として認識することが多い。
+数値計算量すなわち演算回数の合計値としての
 計算量\begin{math} OP \end{math}は以下の式で表わされる。
 %	\begin{math}
 %	\end{math}
@@ -175,6 +147,7 @@ OP_{source} = \#add + \#sub + \#mult + \#div \\
 	+ \#max + \#sqrt + ...
 \end{align*}
 
+アプリケーションの計算量として認識することが多い。
 計算性能はこの計算量を計算経過時間で割った値として定義される。
 \begin{align*}
 Perf_{source} = OP_{source} / Time	% \div はあまり見た目が良くない、、、
@@ -195,6 +168,7 @@ OP_{weight} =
 	c_{add}\times \#add + c_{sub}\times \#sub + c_{mult}\times \#mult \\
 	+ c_{div}\times \#div + c_{max}\times \#max + c_{sqrt}\times \#sqrt + ...
 \end{align*}
+
 
 HPCアプリケーションにおいて
 所与の計算を効果的に達成するために計算時間の短縮をめざす場合、
@@ -232,23 +206,45 @@ HWPC(Hardware Performance Counter)に記録されるイベントカウント数
 適切なAPIによってHWPCに記録された情報へアクセスし、
 実行された命令数を測定して計算量を求める。
 
-例えば浮動小数点演算に属する計算量はHPWCで計上されたイベント数を基にして
-以下の式により求められる。
+例えば後出のSkylake Goldプロッセサの浮動小数点演算に属する計算量は
+HPWCで計上されたイベント数を基にして以下の式により求められる。
 
-{ \color{blue}
-線形結合式\\
 \begin{math}
-OP_{hwpc} = ****************
-\end{math}\\
-... HWPCベースの計算式を構築
-}
-以下このように測定される計算量をHWPC計算量とよび、HWPC計算量を基準とした
+fpsp1  : "FP\_ARITH:SCALAR\_SINGLE"; \\
+fpsp4  : "FP\_ARITH:128B\_PACKED\_SINGLE"; \\
+fpsp8  : "FP\_ARITH:256B\_PACKED\_SINGLE"; \\
+fpsp16 : "FP\_ARITH:512B\_PACKED\_SINGLE"; \\
+fpdp1  : "FP\_ARITH:SCALAR\_DOUBLE"; \\
+fpdp2  : "FP\_ARITH:128B\_PACKED\_DOUBLE"; \\
+fpdp4  : "FP\_ARITH:256B\_PACKED\_DOUBLE"; \\
+fpdp8  : "FP\_ARITH:512B\_PACKED\_DOUBLE";
+\end{math}
+\begin{align*}
+OP{hwpc} = fpsp1 + fpdp1 + 4.0*fpsp4 + 8.0*fpsp8 \\
+	+ 16.0*fpsp16 + 2.0*fpdp2 + 4.0*fpdp4 + 8.0*fpdp8;
+\end{align*}
+
+FX100プロッセサであれば、 \par
+\begin{math}
+fpdp1  : "1FLOPS\_INSTRUCTIONS"; \\
+fpdp2  : "2FLOPS\_INSTRUCTIONS"; \\
+fpdp4  : "4FLOPS\_INSTRUCTIONS"; \\
+fpdp8  : "8FLOPS\_INSTRUCTIONS"; \\
+fpdp16 : "16FLOPS\_INSTRUCTIONS";
+\end{math}
+\begin{align*}
+OP{hwpc} = fpdp1 + 2.0*fpdp2 + 4.0*fpdp4 \\
+	+ 8.0*fpdp8 + 16.0*fpdp16; 
+\end{align*}
+
+このように測定される計算量を以下、HWPC計算量とよび、HWPC計算量を基準とした
 計算性能をHWPC計算性能と呼ぶことにする。
 いわゆるシステム性能に主眼がおかれた文脈で使用されることが多い。
 
-HWPC測定性能が非常に高く表示されるにもかかわらず、
-数値計算上の性能は非常に低いという状況は、
-本節で述べた観点が違う事による計算量の定義の違い、
+HWPC測定性能が高く表示されるにもかかわらず、
+数値計算上の性能は低いという状況は、
+\ref{section:computing-volume}
+節で述べた観点が違う事による計算量の定義の違い、
 およびハードウエアの有効利用の状況、
 の双方の影響を受けた結果であるといえる。
 
@@ -259,38 +255,26 @@ HWPC測定性能が非常に高く表示されるにもかかわらず、
 
 PMlibはアプリケーションの計算性能モニター用のクラスライブラリであり、
 オープンソースソフトウエアとして公開されている。
-\cite{PMlib1:webpage} \par
 \cite{PMlib2:webpage} \par
-{ \color{blue} \par
-（citeはどちらのWebページの方が良いか？）
-} \par
 PMlibは前述した２種類の計算性能（数値計算性能とHWPC計算性能）
 を測定する機能を持つ。
 アプリのソース中に測定区間を指定して、
 測定区間毎の統計情報をアプリ終了時・あるいは計算途中の指定位置で出力する。
 
-数値計算性能を測定するためには該当区間の計算量を明示的な評価式の形で
-PMlib APIへ引数として渡す。
 測定区間は区間の名称、測定計算量の種類（演算量｜データ移動量）、
 排他性（排他的｜非排他的）、蓄積計算量からなる少数の属性を持つ。
 アプリ終了時の出力レポートに測定区間単位、プロセス単位、アプリ単位での
 計算性能が表示される。
 出力する情報の内容はアプリ実行時のオプションとして環境変数を指定する事によ
 り制御される。
-HWPC計算性能を測定する場合は計算量の種類・蓄積計算量はPMlib
-内部で自動的に決定・積算されるため、PMlib APIへ引数として渡される値は
-用いられない。
+
 
 \subsection {PMlib APIの利用}
 PMlibはC++およびFortranプログラムから呼び出して利用することができる。
 
-以下の\lstlistingname \ref{listing1}はPMlib APIを利用するFortranソースプログラムの例である。
-
-{ \color{blue} \par
-lstlistingのcaptionは思い通りについてくれないので手を抜いてみるw \\
-が、利用プログラム例はもう少しまともなコードの方が良いか、、、
-} \par
-%\begin{lstlisting}[caption={FortranプログラムへのPMlib組み込み例},label={listing1},captionpos=b]
+以下\ref{listing1}はPMlib APIを利用するFortranソースプログラムの例である。
+% caption={FortranプログラムへのPMlib組み込み例}
+% \begin{lstlisting}[caption={\hfill},label={listing1},captionpos=t]
 \begin{lstlisting}[caption={\hfill},label={listing1},captionpos=t]
 program main
 call f_pm_initialize (nWatch)
@@ -303,20 +287,46 @@ call f_pm_printdetail ("", ilegend, isort)
 end
 \end{lstlisting}
 
+
+\subsection {測定する計算量の指定}
+
+
 数値計算上の計算性能を測定したい場合は、
-PMlib APIの引数として該当区間の計算量を変数式で明示的に指定して積算する。
+PMlib APIの引数として該当区間の計算量を評価式の形で明示的に指定して積算する。
 計算の種類ごとの「重たさ」を全て1.0と設定すると、ソースプログラムに
 記述された計算式の全計算回数を数え上げる事に等しい。
 
 HWPC測定値を基準とした（システム評価的観点での）計算性能を測定したい場合は、
-該当区間のHWPCイベント統計情報をPMlibに自動的に読み取らせる。
+該当区間のHWPCイベント統計情報をPMlibに読み取らせ
+計算量を積算させるため、APIへ引数として渡される値は用いられない。
 HWPCの読み取りには内部でPAPI低レベルAPIを利用し、
-選択と解釈が一般には容易ではない各種ハードウエアイベント統計情報を
-カテゴリ分けしてアプリ利用者が評価しやすい情報として選択出力する。
+アプリ利用者が評価しやすい情報として自動的に選択出力する。
+
+HWPCイベントをアプリから直接 PAPI APIでアクセス利用するのは一般に
+容易ではない。プリセットされた基本的なHWPCイベントだけではなく、
+より詳細なHWPCイベントを選択抽出するために、nativeイベント群と
+そのマスクを調査する必要がある。
+例えば後出のSkylake Goldプロッセサを搭載したサーバで
+papi\_native\_avail コマンドの出力を確認すると5000行以上の情報が出力され、
+その出力からプロセッサアーキテクチャに依存する
+注目する計算性能（計算量）を構成するにイベント名とイベントコードを調査し、
+少数の物理的なカウンターに選択登録するするだけでも相当な負担である。
+
+PMlibを組み込んだアプリケーションでは環境変数 HWPC\_CHOOSER を
+右のカテゴリ値のどれかに設定すると、上記のような調査・妥当なHWPCイベント
+の選択登録などを内部で実施し、計算量の統計を収集することができる。
+カテゴリ値：
+FLOPS \textbar BANDWIDTH\textbar VECTOR\textbar CACHE
 
 { \color{blue} \par
-発表時のスライドでは橋本ツールと連携した組み込み手順のフローを紹介する。
-\par }
+PMlibの実行と出力例を追加する。 \par
+\lstlistingname \ref{listing2}
+\begin{lstlisting}[caption={\hfill},label={listing2},captionpos=t]
+$ export HWPC\_CHOOSER=FLOPS
+$ mpiexec -np $procs ./a.out
+$
+\end{lstlisting}
+} \par
 
 PMlibではプロセス単位で性能情報を取得する設計となっていて、
 プロセスがOpenMPスレッドを発生する場合、各スレッドの性能情報は帰属する
@@ -353,7 +363,6 @@ PMlibの出力として、標準出力や指定ファイルへのテキストレ
 HPCシステム向けに様々な性能評価のためのツールが公開あるいは販売されている。\par
 オープンソース性能評価ツール類としては
 \begin{itemize}
-	\item Gprof: 簡易機能、コンパイラに制約
 	\item Scalasca \cite{Scalasca:2017} : トレース生成、Score-P共通インフラ
 	\item Extrae \cite{Extrae:webpage} : トレース生成
 	\item PAPI \cite{PAPI:5.6} : HWPCへのアクセス
@@ -381,21 +390,6 @@ HPCシステム向けに様々な性能評価のためのツールが公開あ�
 
 \subsection{PMlibを用いた性能測定方法}
 
-{ \color{blue} \par
-PMlibでどのような分析ができるか \par
-・HWPCベースでのアーキテクチャの有効利用状況 \par
-・・使いやすい用にグループ化した統計出力 \par
-・・SSE/AVX系命令の実行比率 \par
-・・・ー＞SIMD機構の有効利用の確認 \par
-・・キャッシュヒット率 \par
-・・・ー＞コンパイラがどれだけ賢くコンピュータの能力を引き出しているか評価ができる \par
-・・・ー＞コンパイラオプションの選択、指示行の指定などで、どのような効果が現れるか \par
-・ピーク性能に対する実効性能比を裏付けてみる \par
-
-発表スライドではCCA/EBT、OTF、HWPC(PAPI)を説明。そこに力点をおくとよい\\
-Skylakeの例で示すといい\\
-ルーフラインモデルを示し、実測との比較を見るとよい\\
-} \par
 
 性能測定には以下のプログラムを用いた
 \begin{itemize}
@@ -452,10 +446,10 @@ Mem GB/s/[CMGcpu]	&	120/R+120/W	&	128	\\ \hline
 基本的な演算カーネル例として以下の様な、四則演算、平方根、３平方逆数
 の配列計算を評価する。
 
-基本的な演算カーネル例のソース：\lstlistingname \ref{listing2}
+基本的な演算カーネル例のソース：\lstlistingname \ref{listing3}
 
-%	\begin{lstlisting}[label={listing2},captionpos=t]
-\begin{lstlisting}[caption={\hfill},label={listing2},captionpos=t]
+%	\begin{lstlisting}[label={listing3},captionpos=t]
+\begin{lstlisting}[caption={\hfill},label={listing3},captionpos=t]
 subroutine sub_add(a,b,c,n)
 real*8 a(n), b(n), c(n)  
 do i=1,n
@@ -483,7 +477,7 @@ c(i)=1.0/sqrt(a(i)**2+b(i)**2) ! 他同様
 測定したHPCシステムのOSはjitter freeではないので、以下の方法により
 測定時間のフィルタリングを行った。
 
-ソース \lstlistingname \ref{listing2} の各
+ソース \lstlistingname \ref{listing3} の各
 サブルーチンを1000回呼び出す中間ループ、およびその中間ループを
 さらに10回反復する最外側ループを設ける。
 \begin{itemize}
