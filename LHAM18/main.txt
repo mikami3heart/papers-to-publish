@@ -1,9 +1,31 @@
 \title{
-Performance evaluation and visualization
-of scientific applications using PMlib
+Performance evaluation and visualization of scientific applications using PMlib
 }
 
+
 \begin{abstract}
+abstract:
+The sustained computational performance of a scientific application on a HPC
+system can be often much lower than the maximum system performance.
+Understanding this gap requires multi-perspective analysis, i.e.
+the perspective in system architecture where the relational characteristics
+of the micro architecture elements are important,
+and the perspective in applications where the theoretical computation
+represented in the source code is compiled into much heavier workload.
+An open source library PMlib help users address such synthetic analysis.
+PMlib provides the way to report the numerical workload count in the source
+code, as well as the actual workload executed on the system captured by
+hardware performance counters(HWPC).
+It also provides the processor specific hardware utilization report
+including the categorized SIMD instruction statistics, the layered cache
+hit/miss rate, and the corresponding bandwidth up to memory.
+Through the use of PMlib, users can conduct synthetic analysis of the
+application performance, and obtain the hint for further optimized execution
+of the application.
+\end{abstract}
+
+
+\begin{mainbody}
 
 The computational performance of a scientific application on a HPC system
 is often much lower than the theoretical maximum performance
@@ -71,5 +93,5 @@ numerical performance v.s. system performance
 evaluation criteria
 evaluation axis
 
-\end{abstract}
+\end{mainbody}
 
