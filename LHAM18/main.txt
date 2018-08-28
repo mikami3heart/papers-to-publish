@@ -1,0 +1,75 @@
+\title{
+Performance evaluation and visualization
+of scientific applications using PMlib
+}
+
+\begin{abstract}
+
+The computational performance of a scientific application on a HPC system
+is often much lower than the theoretical maximum performance
+expected from the system specification.
+
+%	Obvious relational effect of job manager and the system workload is not
+%	the focus of this paper.
+
+Understanding this gap requires the investigation from different perspectives,
+i.e.
+the system architecture perspective 
+and
+the applications numerical performance perspective.
+
+% We can call them
+% hardware centric performance characteristics and
+% application centric performance characteristics.
+
+
+In system architecture perspective,
+micro architecture elements, above all, the number of computing cores
+in the processor, the degree of parallelizm inside the core,
+the depth of cache/memory hierarchy and the data move rate at each hierarchy
+all have relational impact to how the machine instructions are executed,
+thus leading to sustained computing performance.
+
+In applications perspective,
+the numerical computation workload represented as the application source code
+will be compiled to much heavier workload, in general.
+This workload translation can not be overlooked by performance conscious users.
+
+To address these perspectives and to provide simple interface for reporting,
+we develop an open source library PMlib.
+
+PMlib provides the way to report the numerical workload repersented
+as the source code, as well as the actual workload executed on the system
+measured with hardware performance counters(HWPC).
+
+It also provides the processor specific hardware utilization report
+including categorized SIMD instruction statistics,
+layered cache hit/miss rate, and the corresponding bandwidth upto memory.
+It utilizes PAPI low level API for obtaining HWPC event statistics.
+
+Through the use of PMlib, users can conduct synthetic analysis of the
+application performance characteristics, and obtain the hint for
+further optimized execution of the application.
+
+of the applications sustained performance
+and 
+that will lead to the further optimization of the application.
+
+efficient
+effective
+
+all influence the sustained computing performance of the
+does not match the actually executed computation
+
+%	not to mention the variety of the arithmetic instructions available on the
+%	target HPC system.
+
+and to improve the application performance
+computational performance of scientific applications
+computational performance v.s. computing performance.
+numerical performance v.s. system performance
+evaluation criteria
+evaluation axis
+
+\end{abstract}
+
