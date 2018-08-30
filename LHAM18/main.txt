@@ -439,37 +439,38 @@ Each of the tools has its own cons and pros.
 The system vendor provided tools are integrated and qualified in general,
 but is available on the vendor's HPC systems only.
 
-The open source tools are basicaly portable. The functionality of the
+The open source tools are designed to be portable. The functionality of the
 tools are distinct, and multiple tools are used in sequence to obtain
 the desired performance information.
 
-We should note that all of these existing tools utilize the processor
-performance information based on HWPC workload,
-i.e.  performance evaluation in system perspective.
+These existing tools all utilize the processor performance information
+based on HWPC workload, i.e. system workload.
+PMlib appears to be the only tool that enables arithmetic workload
+evaluation.
 
 
 
-\section{PMlibを用いた性能測定と分析例}
+\section{PMlib use case}
 
 
-基本的な演算についてPMlibを用いた分析例を示す。
+Some examples of using PMlib for performance evaluation are shown in this
+section.
+The servers used for the measurements and their processor specifications
+are listed in table \ref{tab:server-config}.
 
+\subsection{measured HPC systems}
 
-\subsection{性能測定プラットフォーム}
-
-測定には以下のHPCシステムを用いた．
 \begin{itemize}
 {
 %	\setlength{\itemsep}{-5pt}
 %	\setlength{\topsep}{2mm}
-\item Intel Ivybridge CPU搭載サーバ
-\item Intel Skylake CPU搭載サーバ
-\item 富士通prime HPC FX100
+\item SGI Intel Ivybridge server
+\item SGI Intel Skylake server
+\item Fujitsu prime HPC FX100
 }
 \end{itemize}
 
-これらプラットフォームの主にCPU部分についての性能諸元を
-表\ref{tab:server-config}に示す．
+
 \newif\ifTwoservers
 \newif\ifThreeservers
 \Twoserversfalse
@@ -479,7 +480,7 @@ i.e.  performance evaluation in system perspective.
 %\small
 \begin{table}[b]
 \scriptsize
-\caption{サーバの構成と最大性能（主にCPU部分）}
+\caption{server configuration and maximum performance}
 \label{tab:server-config}
 \footnotesize
 
@@ -522,17 +523,20 @@ LL\$ BW GB/s/c	&	70/R+35/W	&	77 ( ~43)	\\ \hline
 Memory			&	HMC(8x16Ls)	&	DDR4-2666	& DDR3-1600	\\ \hline
 Mem GB/s/cpu*	&	120/R+120/W	&	128	\\ \hline
 \#cores/cpu*	&	16	&	20	\\ \hline
-\multicolumn{4}{l}{\scriptsize\hspace{5mm} 注 cpu* はCPUまたはCMGを意図する}\\
+\multicolumn{4}{l}{\scriptsize\hspace{5mm} remark. cpu* indicates processor or
+CMG }\\
 \end{tabular}
 \fi
 
 \end{table}
 
 
-\subsection{基本的な演算性能の評価}
+\subsection{evaluation of basic kernels}
 
-基本的な演算として，四則演算と平方根の配列計算カーネルを評価する．
-fortranソースプログラムの抜粋を以下に示す．
+A basic kernel composed of four basic arithmetic operations and square root
+is evaluated first.
+Fortran source program is shown below.
+
 
 %	\begin{lstlisting}[label={listing3},captionpos=t]
 %	\begin{lstlisting}[caption={\hfill},label={listing3},captionpos=t]
@@ -562,6 +566,11 @@ c(i)=sqrt(a(i))
 end do
 return
 \end{lstlisting}
+
+
+
+%%%%%%%%%%%%%%%%%%%% Restart from HERE  %%%%%%%%%%%%%%%%%
+
 どの計算もストライド１の依存性のないループで行われるため，
 効率の良いパイプライン化・SIMD化・ベクトル化処理が適用されると
 期待されるものである．
