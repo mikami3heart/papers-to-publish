@@ -13,6 +13,8 @@
 \usepackage{algorithmicx}
 \usepackage{algpseudocode}
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+\input{lstset.sty}
+
 \begin{document}
 
 \title{
@@ -150,10 +152,23 @@ expressed by the formulas in the source code written in Fortran/C/C++.
 
 The workload at this level can be simply represented as below:
 %単純結合式%	Use Sigma symbol to simplify
-\begin{align*}
-workload_{arithmetic} = N_{add} + N_{sub} + N_{mult} + N_{div} \\
-	+ N_{max} + N_{sqrt} + ...
-\end{align*}
+
+%	\begin{align*}
+%	\end{align*}
+\begin{equation}
+		Workload = \sum_{i=1}^{types} W_{ops}(i) \\
+\end{equation}
+where i represents the arithmetic operation type such as
+1:add, 2:sub, 3:mult, 4:div, 5:max, 6:min, 7:sqrt, ...,
+and W\_ops(i) is the corresponding number of arithmetic operations for i-th
+arithmetic type such as
+W\_ops(add),
+W\_ops(sub),
+W\_ops(mult),
+W\_ops(div),
+W\_ops(max),
+W\_ops(min),
+W\_ops(sqrt)
 
 
 For example, the performance value "flops" reported from Linpack (HPCC)
@@ -166,6 +181,15 @@ using terms of addition and multiplication only.
 Gflops = N^{2} \times ( 2/3 * N + 3/2 ) \times 1.0^{-9} / Time 
 \end{align*}
 
+\begin{equation}
+		Workload = \sum_{i=1}^{2} W_{ops}(i)
+\end{equation}
+where
+\begin{math}
+		W_{ops}(1) : add = 1/3 N^{3} + 3/4 N^{2}
+		and
+		W_{ops}(2) : mult = 1/3 N^{3} + 3/4 N^{2}
+\end{math}
 
 In the development phase of the HPC applications, practical developers
 choose and deploy the numerical algorithm which require the least
@@ -268,10 +292,6 @@ the depth of cache/memory hierarchy and the data move rate at each hierarchy
 all have relational impact to how the machine instructions are executed,
 thus leading to sustained computing performance.
 
-parallel
-
-
-
 \subsection{PMlib addresses it!}
 
 It also provides the processor specific hardware utilization report
@@ -279,10 +299,6 @@ including categorized SIMD instruction statistics,
 layered cache hit/miss rate, and the corresponding bandwidth upto memory.
 It utilizes PAPI low level API for obtaining HWPC event statistics.
 
-\subsection{conclusion}
-Through the use of PMlib, users can conduct synthetic analysis of the
-application performance characteristics, and obtain the hint for
-further optimized execution of the application.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %	以下は IJSP163 日本語
@@ -358,12 +374,9 @@ depending on the controlling environment variable.
 \subsection {PMlib API}
 PMlib API can be called from C++ and Fortran programs as below.
 
-%\ref{listing1}
-% \begin{lstlisting}[caption={FortranプログラムへのPMlib組み込み例}]
-% \begin{lstlisting}[caption={\hfill},label={listing1},captionpos=t]
 % \begin{lstlisting}
-\begin{lstlisting}[caption={using PMlib in Fortran program},basicstyle=\footnotesize]
-! Fortran example
+% \begin{lstlisting}[label={caller-f},captionpos=t]
+\begin{lstlisting}[caption={using PMlib in Fortran program}]
 program main
 call f_pm_initialize (Nsections)
 call f_pm_setproperties ("section1" icalc, iexcl)
@@ -573,42 +586,7 @@ Basic kernels composed of four basic arithmetic operations and square root
 are evaluated first.
 Fortran source program for the measuring kernels is shown below.
 
-お試しパターン１
-\begin{quote}
-\begin{small}
-\begin{verbatim}
-subroutine sub_add(a,b,c,n)
-real a(n), b(n), c(n)  
-do i=1,n
-c(i)=a(i)+b(i)
-end do
-return
-subroutine sub_fma(a,b,c,n)
-real a(n), b(n), c(n)  
-do i=1,n
-c(i)=a(i)+b(i)*d
-end do
-return
-subroutine sub_divide(a,b,c,n)
-real a(n), b(n), c(n)  
-do i=1,n
-c(i)=b(i)/a(i)
-end do
-return
-subroutine sub_sqrt(a,b,c,n)
-real a(n), b(n), c(n)  
-do i=1,n
-c(i)=sqrt(a(i))
-end do
-return
-\end{verbatim}
-\end{small}
-\end{quote}
-
-
-%	\begin{lstlisting}[label={listing3},captionpos=t]
-%	\begin{lstlisting}[caption={\hfill},label={listing3},captionpos=t]
-\begin{lstlisting}
+\begin{lstlisting}[caption={basic kernels}]
 subroutine sub_add(a,b,c,n)
 real a(n), b(n), c(n)  
 do i=1,n
@@ -754,11 +732,14 @@ The interval for single precision (32 bits) is
 \label{fig:HAS-gflops-short-R4}
 \end{figure}
 
-Understanding the performance characteristics from not only the
-system perspective but also arithmetic perspective should help in the
-development and the production phase of the scientific applications.
-PMlib provides the way to conduct such two-axis performance evaluation.
-
+Performance evaluation from the arithmetic perspective and from the
+system perspective provides the capability to build up the theoretical
+workload model of the application,
+and the capability to map the model with the actual system workload
+and performance on a specific HPC system.
+PMlib provides the capability to conduct such synthetic performance
+evaluation, and hopefully the hint for further optimized execution of
+the application in its development and production phase.
 
 
 \subsection{STREAM性能の評価}
