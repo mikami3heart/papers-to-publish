@@ -69,20 +69,23 @@ PMlib
 
 
 \section{Introduction}
+{\color{blue} Check the use of terminology: user/arithmetic/application/system}
 
-The purpose of this research.
+
+%	The purpose of this research.
 In the development and the productive phase of the scientific application,
 the performance evaluation is frequently conducted on the target HPC systems.
 in order to understand the performance characteristics
 of the application on the target system, and to explore the possibility of
 applying further optimization to the software for elapsed time reduction.
-
-As the background, there is well known fact that 
+As a background of this,
+depending on the type of application and HPC system,
+we frequently observe the situation where
 the sustained computational performance of scientific applications on HPC
 systems can be much lower than the theoretical maximum performance
-expected from the system specification, depending on the type of applications.
+expected from the system specification,
 
-\cite{cite-1-1}
+{\color{blue} citation low-performance???}
 
 There have been many prededing studies to account for this gap between
 the achieved performance and the maximum performance, mostly from architecture
@@ -90,7 +93,7 @@ point of view,
 some mentioning the difficulty of utilizing parallel arithmetic functional units,
 some mentioning the locality of data residing on memory/cache hiererchy.
 
-\cite{paper-bottleneck-analysis}
+{\color{blue} citation bottleneck-analysis}
 
 The performance is measured in the unit of conducted workload / elapsed time.
 We should remind that the definition of workload measurement can vary,
@@ -136,60 +139,24 @@ Finally, some examples of the performance analysis and optimization
 will be shown indicating the merit obtained from 
 multi-perspective analysis.
 
-%	detecting the performance bottleneck ???
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Computational workload and Performance evaluation}
 \subsection{user perspective performance}
-
-{\color{blue} Choose workload terminology!!! arithmetic/application/system}
 
 The term "computational workload" for scientific application developpers
 is generally perceived as the total volume of arithmetic operations,
 expressed by the formulas in the source code written in Fortran/C/C++.
 
 The workload at this level can be simply represented as below:
-%単純結合式%	Use Sigma symbol to simplify
-
 %	\begin{align*}
 %	\end{align*}
-\begin{equation}
-		Workload = \sum_{i=1}^{types} W_{ops}(i) \\
+\begin{equation}\label{arithmetic-workload}
+	Workload = \sum_{i=1}^{types} W_{ops}(i)
 \end{equation}
-where i represents the arithmetic operation type such as
-1:add, 2:sub, 3:mult, 4:div, 5:max, 6:min, 7:sqrt, ...,
-and W\_ops(i) is the corresponding number of arithmetic operations for i-th
-arithmetic type such as
-W\_ops(add),
-W\_ops(sub),
-W\_ops(mult),
-W\_ops(div),
-W\_ops(max),
-W\_ops(min),
-W\_ops(sqrt)
+where $ W_{ops}(i) $ is the number of operations for the
+corresponding arithmetic type such as
+1:add, 2:sub, 3:mult, 4:div, 5:max, 6:min, 7:sqrt, etc.
 
-
-For example, the performance value "flops" reported from Linpack (HPCC)
-\cite{}
-is calculated based on above arithmetic workload formula
-\ref{}
-using terms of addition and multiplication only.
-
-\begin{align*}
-Gflops = N^{2} \times ( 2/3 * N + 3/2 ) \times 1.0^{-9} / Time 
-\end{align*}
-
-\begin{equation}
-		Workload = \sum_{i=1}^{2} W_{ops}(i)
-\end{equation}
-where
-\begin{math}
-		W_{ops}(1) : add = 1/3 N^{3} + 3/4 N^{2}
-		and
-		W_{ops}(2) : mult = 1/3 N^{3} + 3/4 N^{2}
-\end{math}
 
 In the development phase of the HPC applications, practical developers
 choose and deploy the numerical algorithm which require the least
@@ -197,62 +164,74 @@ amount of arithmetic operations through the scientific consideration,
 aiming to reduce the elapsed time to obtain the desired simulation results.
 The workload in this context is named arithmetic workload in this paper.
 
-PMlib can be used to evaluate this arithmetic workload as explained
-in the later section \ref{}.
 
-
-the source code formulas are then compiled to corresponding assembly
+The formulas in the source code are then compiled to corresponding assembly
 instructions.
 Each arithmetic statement is mapped to a sequence of multiple instructions.
 We use "weight factor" to map the original arithmetic operations to the
 generated instructions to quantify the relationship.
-Assuming a simple "weight factor" constant w\_\* for each type of
+Assuming a simple weight factor $ c $ for each type of
 arithmetic operations, 
 the workload at this point can be represented as below:
-
+\begin{equation}\label{application-workload}
+		Workload = \sum_{i=1}^{types} \left(c(i)\times W_{ops}(i)\right)
+\end{equation}
 % workload_{system}
-\begin{align*}
-%単純結合式%	Use Sigma symbol to simplify
-workload_{weight} =
-	w_{add}\times N_{add} + w_{sub}\times N_{sub} + w_{mult}\times N_{mult} \\
-	+ w_{div}\times N_{div} + w_{max}\times N_{max} + w_{sqrt}\times N_{sqrt} + ...
-\end{align*}
-
-\begin{align*}
-Performance = workload / Time 
-\end{align*}
 
 This workload formula is named application workload in this paper.
 The application workload formula is a simple representation of the original
 arithmetic and provides easy-to-understand relationship between the change
 in the algorithm and the resulting change in the workload.
-
-Under certain conditions
-%	namely, the compiler choice and its optimization options,
-PMlib can be used to help formulate this application workload as explained
+PMlib can be used to evaluate this application workload as explained
 in the later section \ref{}.
 
-While formulating the workload in the form of
-\ref{}
+The application performance is evaluated based on the elapsed time as below.
+\begin{align}\label{performance-workload-time}
+Performance = Workload / Time 
+\end{align}
+
+For example, Linpack (HPCC) 
+\cite{}
+workload is calculated based on the arithmetic workload formula
+using the addition and multiplication terms.
+\begin{align}
+		Workload & = W_{ops}(add) + W_{ops}(mult) \\
+		W_{ops}(add) & = W_{ops}(mult) = 1/3 N^{3} + 3/4 N^{2}
+\end{align}
+where N is the size of the matrix to be solved.
+The linpack performance value "flops" is reported using this workload as
+\begin{align*}
+Gflops = N^{2} \times ( 2/3 * N + 3/2 ) \times 1.0^{-9} / Time 
+\end{align*}
+In linpack example, the application performance is based on
+the same weight factor $ c = 1.0 $ 
+for both addition and multiplication, which is actually reflecting the
+arithmetic workload and performance.
+
+
+The workload formulation in the form of
+\eqref{arithmetic-workload}
 or
-\ref{}
+\eqref{application-workload}
 provides the general idea of the theoretical workload requirement by the
-application, it is open difficult for casual applications to formulate
-the workload. The other representation of workload will be shown in
-the subsequent section.
+application.
+PMlib can be used to help formulate this application workload as explained
+in the later section \ref{}.
+% The other representation of workload will be shown in the subsequent section.
+
 
 \subsection{system perspective performance}
+\label{subsection:system-perspective-performance}
 
-For many applications, it can be difficult to formulate
-the application workload.
-Even if composing the formula is possible, the mapping of "weight factor"
-can be even more complex ,as described below.
+{\color{blue} this subsection needs further consideration}
 
+For large size applications, it can be difficult to formulate
+the arithmetic workload or the application workload.
+Even if composing the arithmetic workload formula is accompplished,
+the mapping of weight factor can be even more complex>
 Mapping mathematical functions to the native instructions
-depends on not only the systems architecture but also the compiling software
-and its optimization options.
-%	mostly, the compiler choice and its optimization options,
-
+depends not only on the systems architecture but also on the compiling
+software and its optimization options.
 There are multiple choices of available instructions for the same
 arithmetic operation on modern processors.
 The choice of instructions from scalar/vector syntax is made by
@@ -261,98 +240,111 @@ In vector, the degree of parallelism, i.e. width of simultaneous data
 operation, with the effect of loop length is influential.
 In scalar, data locality is influential.
 Run time hardware behavior including out-of-order execution can not
-be reflected to static "weight factor".
+be reflected to static weight factor.
 
-Now we look the workload and the performance from system perspective.
+Now we look at the workload and the performance from system perspective.
 
-The fact that the actual numerical computation is accomplished by the
-limited set of hardware components, and that the HWPC is available
-on modern HPC systems, makes it more practical to obtain the HWPC statistics
-and to analyze them for performance evaluation.
-
-reflects the combination of the latency and the throughput of the instruction
-of the particular application.
-
-PMlib can be used for such purpose.
-
-%
-% Can add example of:
-%	"arithmetic workload" from the source code
-%	"application performance" read from assembly code
-%	PMlib measured "HWPC performance"
-%
-
-%%%%%%%%%%%%%   Start from here... %%%%%%%%%%%%%%%
-
-\subsection{micro architecture elements}
-In system architecture perspective,
-micro architecture elements, above all, the number of compute cores
+The micro architecture elements, above all, the number of compute cores
 in the processor, the degree of parallelism inside the core,
 the depth of cache/memory hierarchy and the data move rate at each hierarchy
 all have relational impact to how the machine instructions are executed,
 thus leading to sustained computing performance.
 
-\subsection{PMlib addresses it!}
 
-It also provides the processor specific hardware utilization report
+The fact that the actual numerical computation is accomplished by the
+limited set of hardware components, and that the HWPC is available
+on modern HPC systems, makes it more practical to obtain the HWPC statistics
+and to analyze them for performance evaluation.
+PMlib can be used for that purpose as well.
+
+
+%%%%%%%%%%%%%   Start from here... %%%%%%%%%%%%%%%
+reflects the combination of the latency and the throughput of the instruction
+of the particular application.
+
+Through appropriate APIs, HWPC statistics can be accessed.
+PMlib utilize PAPI \cite{papi-1} low level API to accomplish this,
+and calculate the computing workload from the executed instructions.
+
+It provides the processor specific hardware utilization report
 including categorized SIMD instruction statistics,
 layered cache hit/miss rate, and the corresponding bandwidth upto memory.
 It utilizes PAPI low level API for obtaining HWPC event statistics.
 
+Each type of proccessor has its own PAPI mnemonic for HWPC event statistics.
+For example, floating point operations on
+Intel Xeon Skylake Gold \cite{skylake-1} processor
+are measured as the following events.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%	以下は IJSP163 日本語
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection {システム評価的観点での性能}
-\label{subsection:system-perf}
+%	\begin{small}
+%	\begin{lstlisting}[caption={Intel Xeon Skylake f.p. SIMD operations}]
+%	\end{lstlisting}
+%	\end{small}
 
+\begin{quote}
+\begin{small}
+\begin{verbatim}
+fpsp1  : "FP_ARITH:SCALAR_SINGLE";
+fpsp4  : "FP_ARITH:128B_PACKED_SINGLE";
+fpsp8  : "FP_ARITH:256B_PACKED_SINGLE";
+fpsp16 : "FP_ARITH:512B_PACKED_SINGLE";
+fpdp1  : "FP_ARITH:SCALAR_DOUBLE";
+fpdp2  : "FP_ARITH:128B_PACKED_DOUBLE";
+fpdp4  : "FP_ARITH:256B_PACKED_DOUBLE";
+fpdp8  : "FP_ARITH:512B_PACKED_DOUBLE";
+\end{verbatim}
+\end{small}
+\end{quote}
 
-Through appropriate APIs, HWPC statistics can be accessed. PMlib utilize
-PAPI \cite{papi-1} low level API to accomplish this, and calculate the
-computing workload from the executed instructions.
-For example, Intel Xeon Skylake Gold \cite{skylake-1} processor
-floating point operations can be derived from the HWPC event statistics
-using the formula below. \ref{skylake-ops-1}
+The sum of these operations multiplied by the corresponding width
+of the SIMD instruction, i.e. the weight factor $ c $, gives the
+floating point operation workload including single precision
+and double precision data types.
+%	\begin{multline}
+%	W_{hwpc} = fpsp1 + fpdp1 \\
+%		+ 4.0*fpsp4 + 8.0*fpsp8 + 16.0*fpsp16 \\
+%		+ 2.0*fpdp2 + 4.0*fpdp4 + 8.0*fpdp8;
+%	\end{multline}
+\begin{align}
+	W_{hwpc} & = fpsp1 + fpdp1 \nonumber \\
+			& + 4.0*fpsp4 + 8.0*fpsp8 + 16.0*fpsp16 \nonumber \\
+			& + 2.0*fpdp2 + 4.0*fpdp4 + 8.0*fpdp8;
+\end{align}
 
-
-\begin{math}
-fpsp1  : "FP\_ARITH:SCALAR\_SINGLE"; \\
-fpsp4  : "FP\_ARITH:128B\_PACKED\_SINGLE"; \\
-fpsp8  : "FP\_ARITH:256B\_PACKED\_SINGLE"; \\
-fpsp16 : "FP\_ARITH:512B\_PACKED\_SINGLE"; \\
-fpdp1  : "FP\_ARITH:SCALAR\_DOUBLE"; \\
-fpdp2  : "FP\_ARITH:128B\_PACKED\_DOUBLE"; \\
-fpdp4  : "FP\_ARITH:256B\_PACKED\_DOUBLE"; \\
-fpdp8  : "FP\_ARITH:512B\_PACKED\_DOUBLE";
-\end{math}
-\begin{align*}
-OP{hwpc} = fpsp1 + fpdp1 + 4.0*fpsp4 + 8.0*fpsp8 \\
-	+ 16.0*fpsp16 + 2.0*fpdp2 + 4.0*fpdp4 + 8.0*fpdp8;
-\end{align*}
-
-Fujitsu FX100 processor, for example, has a different event symbols as below.
-\par
-\begin{math}
-fpdp1  : "1FLOPS\_INSTRUCTIONS"; \\
-fpdp2  : "2FLOPS\_INSTRUCTIONS"; \\
-fpdp4  : "4FLOPS\_INSTRUCTIONS"; \\
-fpdp8  : "8FLOPS\_INSTRUCTIONS"; \\
-fpdp16 : "16FLOPS\_INSTRUCTIONS";
-\end{math}
-\begin{align*}
-OP{hwpc} = fpdp1 + 2.0*fpdp2 + 4.0*fpdp4 \\
-	+ 8.0*fpdp8 + 16.0*fpdp16; 
-\end{align*}
+The floating point operations on Fujitsu FX100 processor, as second example,
+are measured as the following events.
+\begin{quote}
+\begin{small}
+\begin{verbatim}
+fpdp1  : "1FLOPS_INSTRUCTIONS";
+fpdp2  : "2FLOPS_INSTRUCTIONS";
+fpdp4  : "4FLOPS_INSTRUCTIONS";
+fpdp8  : "8FLOPS_INSTRUCTIONS";
+fpdp16 : "16FLOPS_INSTRUCTIONS";
+\end{verbatim}
+\end{small}
+\end{quote}
+The floating point operation workload including single precision
+and double precision data types is given as:
+\begin{align}
+	W_{hwpc} & = fpdp1 + 2.0*fpdp2 + 4.0*fpdp4 \nonumber \\
+			& + 8.0*fpdp8 + 16.0*fpdp16; 
+\end{align}
 
 We call the workload measured in this fashion as HWPC workload,
 and the evaluated performance as HWPC performance.
-HWPC performance is frequently used in the 
+HWPC performance is commonly used in the HPC systems evaluation.
 
+We will look into the situation where above workloads must be considered
+carefully and separately.
 
-The situation that the arithmetic performance, i.e. user perspective,
-of scientific applications on HPC systems is low,
-even if the HWPC performance, i.e. system perspective, is high
-actually exhibits the difference of the workload definition as described above.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+{\color{blue} Where should we put this?}\par
+Scientific applications on HPC systems frequently exhibits
+the user perspective arithmetic performance low,
+but the system perspective HWPC performance high. \\
+difference of the workload definition . \\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 \section{PMlib}
@@ -360,8 +352,8 @@ actually exhibits the difference of the workload definition as described above.
 \subsection {about PMlib}
 
 PMlib is an open source library to monitor the scientific applications
-performance.
-\cite{PMlib2:webpage} \par
+performance. 
+\cite{PMlib:webpage-public},
 
 PMlib can measure two types of workload, i.e. arithmetic and HWPC.
 Users insert the PMlib start/stop API statements in the source code.
@@ -372,19 +364,18 @@ depending on the controlling environment variable.
 
 
 \subsection {PMlib API}
-PMlib API can be called from C++ and Fortran programs as below.
+PMlib API can be called from C++ and Fortran programs.
 
-% \begin{lstlisting}
-% \begin{lstlisting}[label={caller-f},captionpos=t]
+{\color{blue} this code sample is no useful. maybe we should delete it. }
 \begin{lstlisting}[caption={using PMlib in Fortran program}]
 program main
 call f_pm_initialize (Nsections)
-call f_pm_setproperties ("section1" icalc, iexcl)
+call f_pm_setproperties ("section1",icalc,iexcl)
 call f_pm_start ("section1")
 call MyComputation (fops)
-call f_pm_stop ("section1", fops, ncall)
-call f_pm_print ("", isort)
-call f_pm_printdetail ("", ilegend, isort)
+call f_pm_stop ("section1",fops,ncall)
+call f_pm_print ("",isort)
+call f_pm_printdetail ("",ilegend,isort)
 end
 \end{lstlisting}
 
@@ -401,15 +392,19 @@ event statistics at each of start/stop API.
 In HWPC workload mode, PMlib does not use the argument value, if given any.
 The choice of arithmetic workload or HWPC workload is made by a
 run time environment variable HWPC\_CHOOSER.
-
-Possible choice of HWPC\_CHOOSER value:
-
-FLOPS \textbar BANDWIDTH\textbar VECTOR\textbar CACHE
+Possible choice of HWPC\_CHOOSER value is:
+\begin{quote}
+\begin{small}
+%	\begin{verbatim}
+FLOPS\textbar BANDWIDTH\textbar VECTOR\textbar CACHE
+%	\end{verbatim}
+\end{small}
+\end{quote}
 
 While PAPI has a good set of user APIs and is well documented,
 it is not a simple task to choose the correct native event sets and masks
-of the specific target HPC processor type and to sort out the event values for
-a desired performance category using a limited set of HWPC.
+of the specific target processor instructions and to sort out the event
+values for a desired performance category using a limited set of HWPC.
 For example,
 the standard output from papi\_native\_avail command on a server with
 Intel Skylake Gold processor gives 5000+ lines.
@@ -417,8 +412,6 @@ Intel Skylake Gold processor gives 5000+ lines.
 PMlib takes the role to interface the application developer's intent to
 categorize the performance with the raw information from HWPC, and to
 help evaluate the performance.
-
-
 Once PMlib APIs are coded in the application, PMlib preserves the HWPC
 portability. That is, PMlib chooses and reads the appropriate HWPC event
 set, if the application is run on different HPC systems.
@@ -437,13 +430,12 @@ set, if the application is run on different HPC systems.
 \subsection{PMlib internal timer}
 PMlib is a portable open source package, and utilizes linux standard timer
 gettimeofday by default. It also has the installation option to utilize
-a system specific high resolution low overhead timer for several platforms.
-The two HPC systems in the previous section have such timer, and PMlib has
-provision to use them.
-Fig \ref{fig:precise-timer} shows the comparison of standard timer and
-high resolution timer on these system.
+a system specific high resolution low overhead timer if such timer is
+available on the platform.
 
-
+Fig.\ref{fig:precise-timer} shows the comparison of standard timer and
+high resolution timer on the two HPC systems in the previous section.
+PMlib has provision to use them as installation option.
 \begin{figure}[bt]
 \centering
 \includegraphics[width=0.45\textwidth]{figs/precise-timer.pdf}
@@ -637,7 +629,7 @@ adding additional outer loop for repeated measurement, and filter out
 the measurements whose value is out of standard deviation.
 
 
-The figure \ref{fig:fx100-gflops-long-R8} shows the 
+The fig.\ref{fig:fx100-gflops-long-R8} shows the 
 measurement of the basic kernels on FX100 system using the loop length of
 \begin{math}
 n=1,2,4,..,2^{26}
@@ -666,10 +658,8 @@ L1\$ / L2\$ / LLC / memory bandwidth in the roofline envelop.
 
 \cite{Williams:2009:RIV:1498765.1498785} 
 
-The figures
-\ref{fig:fx100-gflops-short-R8} and \ref{fig:ivy-gflops-short-R8}
-shows the detail performance characteristics of the same kernels
-for
+Fig.\ref{fig:fx100-gflops-short-R8} and fig.\ref{fig:ivy-gflops-short-R8}
+shows the detail performance characteristics of the same kernels for
 \begin{math}
 n=1,2,3,..,128
 \end{math}
@@ -705,7 +695,7 @@ For example, FX100 double precision (64 bits) arithmetic can utilize
 .
 So the performance is highest at 4n, then 4n+1, 4n+2, and lowest at 4n+3.
 
-The figure \ref{fig:fx100-gflops-short-R8} is showing the fact that
+The fig.\ref{fig:fx100-gflops-short-R8} is showing the fact that
 program coding practice to maintain the loop length as the multiply of
 SIMD width has significant impact, especially for short loop computation.
 
@@ -713,9 +703,9 @@ The interval for single precision (32 bits) is
 \begin{math}
 256 / 32 = 8
 \end{math}
-, and shows even stronger performance impact as seen in figures
-\ref{fig:fx100-gflops-short-R4} for FX100，
-\ref{fig:HAS-gflops-short-R4} for Haswell CPU.
+, and shows even stronger performance impact as seen in 
+fig.\ref{fig:fx100-gflops-short-R4} for FX100，
+fig.\ref{fig:HAS-gflops-short-R4} for Haswell CPU.
 
 \begin{figure}[bt]
 \centering
@@ -802,26 +792,22 @@ Intelコンパイラにはオプションが多数あり，中でも特にメモ
 が読み取れる．
 
 
-
-\section{Reminders}
-Do not mix abbreviations of units: ``Wb/m\textsuperscript{2}'' or ``webers per square meter''.
-
-
-Punctuate equations with commas or periods when they are part of a sentence, as in:
-\begin{equation}
-a+b=\gamma\label{eq}
-\end{equation}
-
-reference to the equation with numbers only \eqref{eq}.
-you may use slash (~/~) in equation.
-For figures, use the abbreviation ``fig.~\ref{fig}''.
-
-
 \section*{Acknowledgment}
 
 \section*{References}
 
-citation first, followed by the original foreign-language citation \cite{b6}.
+The following reference should be cited. To complete before the final submission.
+\cite{PMlib:webpage-public},
+\cite{PMlib:webpage-master},
+\cite{PMlib:webpage-develop},
+\cite{Extrae:webpage},
+\cite{Scalasca:2017},
+\cite{PAPI:5.6},
+\cite{Intel:VTune},
+\cite{PGI:Profiler},
+\cite{stream:1995},
+\cite{Scalasca:2010},
+\cite{Williams:2009},
 
 \bibliographystyle{jplain}
 \bibliography{PMlib}
