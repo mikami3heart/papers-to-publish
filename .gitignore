@@ -13,5 +13,6 @@
 *.xbb
 *.fdb_latexmk
 *.fls
-obsolete
 *.xlsx
+obsolete
+sub_material

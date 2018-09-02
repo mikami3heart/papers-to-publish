@@ -56,7 +56,8 @@ including the categorized SIMD instruction statistics, the layered cache
 hit/miss rate, and the corresponding bandwidth up to memory,
 which are captured via hardware performance counters (HWPC).
 Using of PMlib, users can conduct synthetic analysis of the application
-performance, and obtain the hint for further optimized execution of applications.
+performance, and obtain the hint for further optimized execution of
+the applications.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -68,10 +69,7 @@ open source library,
 PMlib
 \end{IEEEkeywords}
 
-
-
 \section{Introduction}
-
 In the development and the productive phase of the scientific application,
 the performance evaluation is frequently conducted on the target HPC systems.
 in order to understand the performance characteristics
@@ -94,45 +92,47 @@ The performance is measured in the unit of conducted workload / elapsed time.
 We should remind that the definition of workload measurement can vary,
 usually chosen from one of the the followings,
 the arithmetic workload defined by the applications in their source program,
-and the system workload actually executed on HPC systems that is represented as
-machine instructions which is measured with hardware performance counters (HWPC).
+and the system workload actually executed on HPC systems that is represented
+as machine instructions which is measured with hardware performance counters
+(HWPC).
 The difference in the performance based on these two workload definitions
-can be significant as explained in the later section \ref{},
+can be significant as explained in section \ref{workload-evaluation},
 and is sometimes confusing to application users.
-
 %	Obvious relational effect of job manager and the system workload is not
 %	the focus of this paper.
 
-PMlib has the functionality
+PMlib, an open source library for performance evaluation,
+\cite{PMlib:webpage-public}
+has the functionality
 to explicitly measure the arithmetic workload counted in the source program
 using manually formulated argument, as well as the functionality
 to automatically measure the HWPC event base workload,
 thus providing users an option to compare the difference in workloads.
 
-In measuring the HWPC events, PMlib utilizes PAPI \cite{} low level API.
+In measuring the HWPC events, PMlib utilizes PAPI \cite{PAPI:5.6} low level API.
 PMlib has its own scheme to choose the related HWPC event sets and to sort out
 the event statistics according to run time environment variables, making it
 easier to extract the statistics of interest.
 Choosing the correct set of events for specific processor type and
 translating the accumulated counts into meaningful performance index can be
 non-trivial work if without PMlib.
-
 The output information from PMlib is a blocked text report based on
 the time averaged performance statistics, by default.
-It also produces the Open Trace Format \cite{} tracing file reflecting
+It also produces the Open Trace Format
+\cite{Knupfer:2006}, \cite{OTF:webpage-public}
+tracing file reflecting
 the shorter interval statistics which can be read by Web browser
-visualization tool TRAiL \cite{}.
+visualization tool TRAiL.% \cite{}.
 
 In this paper, the difference between the arithmetic workload and the system
 workload is clarified.
-Next, moving on to the performance measurement of the workload,
-some examples of PMlib feature to read the performance characteristics
-will be shown.
+Next, the PMlib's useful feature for performance evaluation is shown.
 Finally, some examples of the performance evaluation using PMlib
-will be shown indicating the merit obtained from multi-perspective analysis.
-
+are shown indicating the merit obtained from multi-perspective analysis.
 
 \section{Computational workload and Performance evaluation}
+\label{workload-evaluation}
+
 \subsection{user perspective}
 \label{subsection:user-perspective}
 
@@ -156,7 +156,6 @@ amount of arithmetic operations through the scientific consideration,
 aiming to reduce the elapsed time to obtain the desired simulation results.
 The workload in this context is named arithmetic workload in this paper.
 
-
 The formulas in the source code are then compiled to corresponding assembly
 instructions.
 Each arithmetic statement is mapped to a sequence of multiple instructions.
@@ -174,8 +173,6 @@ This workload formula is named application workload in this paper.
 The application workload formula is a simple representation of the original
 arithmetic and provides easy-to-understand relationship between the change
 in the algorithm and the resulting change in the workload.
-PMlib can be used to evaluate this application workload as explained
-in the later section \ref{}.
 
 The application performance is evaluated based on the elapsed time as below.
 \begin{align}\label{eq:performance-workload-time}
@@ -208,7 +205,6 @@ provides the general idea of the theoretical workload requirement by the
 application.
 PMlib can be used to formulate these arithmetic and application workload
 as explained in section \ref{section:PMlib}.
-
 
 \subsection{system perspective}
 \label{subsection:system-perspective}
@@ -254,7 +250,7 @@ It utilizes PAPI low level API for obtaining HWPC event statistics.
 
 PAPI has its own event mnemonics for each type of HWPC proccessors.
 For example, floating point operations on
-Intel Xeon Skylake Gold \cite{skylake-1} processor
+Intel Xeon Skylake Gold processor % no citation \cite{skylake-1} 
 are measured as the following events.
 
 %	\begin{lstlisting}[caption={Intel Xeon Skylake f.p. SIMD operations}]
@@ -363,16 +359,42 @@ PMlib is an open source library to monitor the scientific applications
 performance. 
 \cite{PMlib:webpage-public},
 
-PMlib can measure two types of workload, i.e. arithmetic and HWPC.
+PMlib is able to measure the listed types of workload discussed in the previous
+section, i.e. arithmetic, application and HWPC workload.
 Users insert the PMlib start/stop API statements in the source code.
 Each measuring section has minimal properties such as name, type of operation,
 exclusiveness, and the workload value.
 The report from PMlib is classified into threads, processes, sections,
 depending on the controlling environment variable.
 
+\subsection{PMlib API}
+\label{subsection:PMlib-API}
 
-\subsection {PMlib API}
-PMlib API can be called from C++ and Fortran programs.
+PMlib APIs can be called from C++ and Fortran programs.
+There are only a handful APIs which must be called in most applications.
+C++ APIs are shown in table \ref{tab:PMlib-API}. There are equivalent
+Fortran APIs whose named as $ f_pm_C++API name $.
+
+\begin{table}[tb]
+\scriptsize
+\caption{list of PMlib basic APIs}
+\label{tab:PMlib-API}
+\footnotesize
+\begin{tabular}{l|l|l} \hline
+\scriptsize
+C++	& function	&	arguments	\\ \hline
+\hline
+initialize	& initial setup	& number of sections (optional)	\\ \hline
+setProperties	& set sections property	& label, type, exclusiveness \\ \hline
+start	& start of section	& label \\ \hline
+stop	& end of section	& label, arithmetic workload (optional)	\\ \hline
+print	& basic report	& filename, comments, sort order	\\ \hline
+\hline
+printDetail	& per process report	& filename, sort order	\\ \hline
+printThreads	& per thread report	& filename, sort order	\\ \hline
+\end{tabular}
+\end{table}
+
 
 {\color{blue} this code sample is not useful. should replace it
 with API specification?}
@@ -391,29 +413,47 @@ end
 
 
 \subsection {choosing workload type}
-If the arithmetic workload must be measured,
-PMlib API pair start/stop accepts argument holding the value or the formula
-of the workload contained inside the section sandwiched by start/stop.
-The API accumulates the volume of workload internally towards its report.
-Counting up the operation in source form.
+PMlib API pair start/stop accumulates the volume of workload internally
+towards its report.
 
-
-If HWPC workload must be measured,
-PMlib automatically detects the type of hardware, and reads the HWPC
-event statistics at each of start/stop API.
-In HWPC workload mode, PMlib does not use the argument value, if given any.
 The choice of arithmetic workload or HWPC workload is made by a
 run time environment variable HWPC\_CHOOSER.
 Possible choice of HWPC\_CHOOSER value is:
 \begin{quote}
 \begin{small}
 %	\begin{verbatim}
-FLOPS\textbar BANDWIDTH\textbar VECTOR\textbar CACHE
+FLOPS\textbar BANDWIDTH\textbar VECTOR\textbar CACHE\textbar CYCLE%
+\textbar user
 %	\end{verbatim}
 \end{small}
 \end{quote}
 
+If the arithmetic workload is measured,
+PMlib API accepts the argument holding the value or the formula
+of the workload contained inside the section sandwiched by start/stop.
+The number of arithmetic operations or the formula must be explicitly
+provided by users. Counting up the operation in source can be a tedious job.
+If the application is written in Fortran program,
+we can take advantage of the related research by Hashimoto
+\cite{Hoshimoto:2015}, \cite{ccaebt:HPCAsia2018}
+to let the parser program analyze the arithmetic operations
+included in Fortran source blocks and produce JSON intermediate report.
+Then, a second filter can be used to produce the
+Fortran source program including PMlib API calls with
+provisioned argument for PMlib.
+Fig.\ref{fig:ccaebt4PMlib} shows the schematic flow to accomplish this flow.
+\begin{figure}[tb]
+\centering
+\includegraphics[width=0.45\textwidth]{figs/ccaebt4PMlib.pdf}
+\caption{ccaebt4PMlib}
+\label{fig:ccaebt4PMlib}
+\end{figure}
 
+If HWPC workload is measured,
+PMlib automatically detects the type of hardware, and reads the HWPC
+event statistics at each of start/stop API.
+In HWPC workload mode, PMlib does not use the user given argument value,
+if any.
 While PAPI has a good set of user APIs and is well documented,
 it is not a simple task to choose the correct native event sets and masks
 of the specific target processor instructions and to sort out the event
@@ -431,13 +471,8 @@ set, if the application is run on different HPC systems.
 
 
 %	PMlib report example 1
-
-
 %	PMlib report example 2
-
-
 %	PMlib report example 3
-
 
 
 \subsection{high resolution timer available to PMlib}
@@ -452,30 +487,32 @@ PMlib has provision to use them as installation option.
 \begin{figure}[tb]
 \centering
 \includegraphics[width=0.45\textwidth]{figs/precise-timer.pdf}
-\caption{precise-timer}
+\caption{precise timer v.s. general timer}
 \label{fig:precise-timer}
 \end{figure}
 
-
-
 \subsection{PMlib output information}
+\label{subsection:PMlib-output-information}
 
 The output information from PMlib is a blocked text report based on
 the time averaged performance statistics, by default.
-It also produces the Open Trace Format \cite{} tracing file reflecting
+It also produces the Open Trace Format tracing file reflecting
 the shorter interval statistics which can be read by Web browser
-visualization tool TRAiL \cite{}.
-
-{\color{blue} shall add two figs here.}
+visualization tool TRAiL.
+\begin{figure}[tb]
+\centering
+\includegraphics[width=0.45\textwidth]{figs/TRAiL-small.pdf}
+\caption{tracing visualization using PMlib and TRAiL}
+\label{fig:TRAiL}
+\end{figure}
 
 \subsection{other performance evaluation tools and related research}
-
+\label{subsection:related-research}
 There has been various tools developed for HPC system  performance evaluation.
-
 In the open source category:
 \begin{itemize}
-	\item Scalasca \cite{Scalasca:2017} : trace generation, Score-P common
-	infrastructure
+	\item Scalasca \cite{Scalasca:2017},\cite{Scalasca:2010}
+			: trace generation, Score-P infrastructure
 	\item Extrae \cite{Extrae:webpage} :  trace generation
 	\item PAPI \cite{PAPI:5.6} : API to access HWPC
 	\item Linux perf tools : API to access HWPC
@@ -505,8 +542,6 @@ PMlib appears to be the only tool that enables arithmetic workload evaluation.
 
 Some examples of using PMlib for performance evaluation are shown in this
 section.
-
-\subsection{measured HPC systems}
 The servers used for the measurements and their processor specifications
 are listed in table \ref{tab:server-config}.
 \begin{itemize}
@@ -526,7 +561,7 @@ are listed in table \ref{tab:server-config}.
 %\tiny
 %\footnotesize
 %\small
-\begin{table}[b]
+\begin{table}[tb]
 \scriptsize
 \caption{server configuration and maximum performance}
 \label{tab:server-config}
@@ -752,8 +787,8 @@ STREAM standard output reports the
 basic arithmetic performance of the copy, multiplication, addition,
 and multiplication\&addition, i.e. arithmetic workload perspective.
 
-As seen in the previous examples {\color{blue}wants ref \ref{} }, STREAM
-HWPC performance also shows different characteristics against
+%	As seen in the previous examples {\color{blue}wants ref \ref{} },
+STREAM HWPC performance shows different characteristics against
 the reported STREAM arithmetic performance. Their performance is under
 combined affect of compilers and their optimization options.
 Although this paper does not intend to cover those exhaustive combinations,
@@ -766,14 +801,13 @@ is shown in fig.\ref{fig:stream-ivy-1cpux8}.
 Then we compare fig.\ref{fig:stream-ivy-1cpux8T}
 with
 fig.\ref{fig:stream-ivy-4cpux2T} 
-which show the result using 8 threads scattered over 4 CPUs.
-
-
+which shows the result using 8 threads scattered over 4 CPUs.
+%
 %	% if without minipage
 %	\centering
 %	\includegraphics[width=0.45\textwidth]{figs/stream-ivy-1cpux8T.pdf}
 %	\includegraphics[width=0.45\textwidth]{figs/stream-ivy-4cpux2T.pdf}
-
+%
 \begin{figure}[tb]
 \begin{minipage}{0.48\hsize}
 \includegraphics[width=0.98\textwidth]{figs/stream-ivy-1cpux8T.pdf}
@@ -790,9 +824,9 @@ which show the result using 8 threads scattered over 4 CPUs.
 
 PMlib BANDWIDTH report and CACHE report can be used
 to check the data movement in cache and memory layer.
-Partial output from the report is shown in listing \ref{}.
+Partial output from the report is shown in listing \ref{tab:report-BANDWIDTH}.
 
-\begin{table*}[bt]
+\begin{table*}[tb]
 \scriptsize
 \caption{PMlib report for BANDWIDTH}
 \label{tab:report-BANDWIDTH}
@@ -823,17 +857,9 @@ or bottleneck-analysis?
 
 {\color{blue} Check the use of terminology: user/arithmetic/application/system}
 
-\cite{PMlib:webpage-public},
-\cite{PMlib:webpage-master},
-\cite{PMlib:webpage-develop},
-\cite{Extrae:webpage},
-\cite{Scalasca:2017},
-\cite{PAPI:5.6},
-\cite{Intel:VTune},
-\cite{PGI:Profiler},
-\cite{stream:1995},
-\cite{Scalasca:2010},
-\cite{Williams:2009},
+%	\cite{PMlib:webpage-public},
+%	\cite{PMlib:webpage-master},
+%	\cite{PMlib:webpage-develop},
 
 \bibliographystyle{jplain}
 \bibliography{PMlib}
