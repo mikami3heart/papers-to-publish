@@ -11,4 +11,7 @@
 *.out
 *.synctex.gz
 *.xbb
+*.fdb_latexmk
+*.fls
 obsolete
+*.xlsx

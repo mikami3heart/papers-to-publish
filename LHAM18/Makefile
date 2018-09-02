@@ -29,5 +29,6 @@ clean:
 
 distclean:
 	rm -f *.dvi *.out *.bbl *.aux *.log *.lot *.lof *.blg *.toc $(MAIN).pdf
+	rm -f *.fls *.fdb_latexmk
 	(cd figs; make clean)
 
