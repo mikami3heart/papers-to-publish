@@ -55,7 +55,7 @@ It also provides the detail utilization report of processor specific hardware
 including the categorized SIMD instruction statistics, the layered cache
 hit/miss rate, and the corresponding bandwidth up to memory,
 which are captured via hardware performance counters (HWPC).
-Using of PMlib, users can conduct synthetic analysis of the application
+Using PMlib, users can conduct synthetic analysis of the application
 performance, and obtain the hint for further optimized execution of
 the applications.
 \end{abstract}
@@ -79,11 +79,11 @@ As a background of this,
 depending on the type of application and HPC system,
 we frequently observe the situation where
 the sustained computational performance of scientific applications on HPC
-systems can be much lower than the theoretical maximum performance
+systems is much lower than the theoretical maximum performance
 expected from the system specification,
 
-There are prededing studies to account for this gap between the achieved
-performance and the maximum performance, mostly from architecture
+Prededing studies to account for this gap between the achieved
+performance and the maximum performance addressed mostly from architecture
 point of view,
 some mentioning the utilization of parallel functional units,
 some mentioning the locality of data residing on memory/cache hiererchy.
@@ -373,7 +373,7 @@ depending on the controlling environment variable.
 PMlib APIs can be called from C++ and Fortran programs.
 There are only a handful APIs which must be called in most applications.
 C++ APIs are shown in table \ref{tab:PMlib-API}. There are equivalent
-Fortran APIs whose named as $ f_pm_C++API name $.
+Fortran APIs who are named as $ f\_pm\_{C++API} $.
 
 \begin{table}[tb]
 \scriptsize
@@ -395,16 +395,15 @@ printThreads	& per thread report	& filename, sort order	\\ \hline
 \end{tabular}
 \end{table}
 
+A Fortran program calling PMlib will look like as below.
 
-{\color{blue} this code sample is not useful. should replace it
-with API specification?}
 %	\begin{lstlisting}[caption={using PMlib in Fortran program}]
 \begin{lstlisting}
 program main
 call f_pm_initialize (Nsections)
 call f_pm_setproperties ("section1",icalc,iexcl)
 call f_pm_start ("section1")
-call MyComputation (fops)
+call some_computation (fops)
 call f_pm_stop ("section1",fops,ncall)
 call f_pm_print ("",isort)
 call f_pm_printdetail ("",ilegend,isort)
@@ -445,7 +444,7 @@ Fig.\ref{fig:ccaebt4PMlib} shows the schematic flow to accomplish this flow.
 \begin{figure}[tb]
 \centering
 \includegraphics[width=0.45\textwidth]{figs/ccaebt4PMlib.pdf}
-\caption{ccaebt4PMlib}
+\caption{counting the operation with ccaebt}
 \label{fig:ccaebt4PMlib}
 \end{figure}
 
@@ -469,11 +468,9 @@ Once PMlib APIs are coded in the application, PMlib preserves the HWPC
 portability. That is, PMlib chooses and reads the appropriate HWPC event
 set, if the application is run on different HPC systems.
 
-
 %	PMlib report example 1
 %	PMlib report example 2
 %	PMlib report example 3
-
 
 \subsection{high resolution timer available to PMlib}
 PMlib is a portable package, and utilizes linux standard timer
@@ -833,15 +830,13 @@ Partial output from the report is shown in listing \ref{tab:report-BANDWIDTH}.
 \footnotesize
 \begin{tabular}{l} \hline
 \scriptsize
-long report.
 \input{figs/stdout.stream-PMlib-BANDWIDTH.txt}
 \input{figs/stdout.stream-PMlib-CACHE.txt}
+above lines should be long.
+add some analysis to above PMlib report for STREAM.
 \end{tabular}
 \end{table*}
 
-{\color{blue}
-add some analysis to above PMlib report.
-}
 
 \section{Conclusion}
 
@@ -850,9 +845,8 @@ add some analysis to above PMlib report.
 \section*{References}
 
 {\color{blue}
-Following reference should be cited. Complete before the final submission.
-Is there good reference/citation for low-performance???
-or bottleneck-analysis?
+citation should be checked before the final submission.\par
+Is there good reference/citation for low-performance  or bottleneck-analysis?
 }
 
 {\color{blue} Check the use of terminology: user/arithmetic/application/system}
