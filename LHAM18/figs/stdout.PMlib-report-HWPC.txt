@@ -1,0 +1,12 @@
+\begin{verbatim}
+# PMlib hardware performance counter (HWPC) Report -------------------------
+Label   sub_add
+Header  ID :    1FP_INS    2FP_INS    4FP_INS    8FP_INS   16FP_INS  VECTOR(%)
+Rank     0 :  1.900e+02  2.600e+02  5.120e+05  0.000e+00  0.000e+00  9.997e+01
+Label   sub_fma
+Header  ID :    1FP_INS    2FP_INS    4FP_INS    8FP_INS   16FP_INS  VECTOR(%)
+Rank     0 :  2.000e+02  2.600e+02  0.000e+00  5.120e+05  0.000e+00  9.999e+01
+Label   sub_divide
+Header  ID :    1FP_INS    2FP_INS    4FP_INS    8FP_INS   16FP_INS  VECTOR(%)
+Rank     0 :  1.900e+02  2.600e+02  1.024e+06  2.560e+06  0.000e+00  1.000e+02
+\end{verbatim}
