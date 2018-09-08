@@ -93,29 +93,32 @@ In the development and productive phase of scientific applications,
 performance evaluation is frequently conducted on target HPC systems,
 in order to understand the performance characteristics
 of the application on the target system, and to explore the possibility of
-applying further optimization to the application to reduce the amount of elapsed time.
-Therefore,
-depending on the type of scientific applications and HPC systems,
-it is frequently observed that
+applying further optimization to the application to reduce the amount of
+elapsed time.
+Depending on the type of scientific applications and HPC systems,
+it is often observed that
 the sustained computational performance of applications
 systems is much lower than the theoretical maximum performance
-expected based on the system’s specifications.
+expected based on the system specifications.
 
 Preceding studies that investigated the origin of this gap between the actual
-performance and the expected performance have primarily addressed this analysis from an architecture perspective, e.g., 
+performance and the expected performance have primarily addressed this
+analysis from an architecture perspective, e.g., 
 utilization of parallel functional units,
 and locality of data residing on memory/cache hierarchy.
 
-Generally, the performance of applications is measured in the unit of conducted workload/elapsed time.
+Generally, the performance of applications is measured in the unit of
+conducted workload/elapsed time.
 It should be noted that there are two factors that define the workload
 of a program in regard to performance measurement. 
 One is the arithmetic workload defined in the applications source program,
-and the other is the system workload that is actually executed on HPC systems. This is represented as machine instructions and is measured with
+and the other is the system workload that is actually executed on HPC systems.
+This is represented as machine instructions and is measured with
 hardware performance counters (HWPC).
 The difference in the performance based on these two workload definitions
 can be significant, as explained in section \ref{workload-evaluation},
-and is sometimes confusing to application users with respect to an understanding
-their behavior.
+and is sometimes confusing to application users with respect to an
+understanding their behavior.
 
 PMlib~\cite{PMlib:webpage-public}, an open source library for performance
 evaluation has the functionality
@@ -136,7 +139,7 @@ the time-averaged performance statistics.
 It also produces the
 Open Trace Format~\cite{Knupfer:2006},~\cite{OTF:webpage-public}
 tracing file that contains
-the shorter interval statistics which can be read by a Web browser’s
+the shorter interval statistics which can be read by a Web browser
 visualization tool.  % TRAiL~\cite{trail}~.%
 
 This paper first clarifies the difference between the arithmetic workload and
@@ -153,7 +156,7 @@ are shown, that highlight the merits of multi-perspective analysis.
 \subsection{User perspective}
 \label{subsection:user-perspective}
 
-The term "computational workload" for scientific application developers
+The computational workload for scientific application developers
 is generally perceived as the total volume of arithmetic operations,
 expressed by the formulas in the source code written in Fortran/C/C++ etc.
 
@@ -165,20 +168,20 @@ The workload at this level can be simply represented as below:
 \end{equation}
 where $ W_{ops}(i) $ is the number of operations for the
 corresponding arithmetic type such as
-1:add, 2:sub, 3:mult, 4:div, 5:max, 6:min, 7:sqrt, etc.
-
-In the development phase of HPC applications, practical developers
+1:add, 2:sub, 3:mult, 4:div, 5:max, 6:min, 7:sqrt, etc.,
+counted in the source program.
+The workload in the form of \eqref{eq:arithmetic-workload}
+is termed the ``arithmetic workload'' in this paper.
+In the development phase of scientific applications, developers
 choose and deploy the numerical algorithm which requires the least
-amount of arithmetic operations based on scientific considerations,
+amount of arithmetic workload based on scientific considerations,
 with the objective of reducing the elapsed time to obtain the desired
 simulation results.
-The workload in this context is named the arithmetic workload in this paper.
 
-The formulas in the source code are then compiled to corresponding assembly
-instructions.
+The source code is then compiled to corresponding assembly instructions.
 Each arithmetic statement is mapped to a sequence of multiple instructions.
-The ``Weight factor'' is used to map the original arithmetic operations to the
-generated instructions to quantify the relationship.
+The ``Weight factor'' can be used to map the original arithmetic operations
+to the generated instructions to quantify the relationship.
 Assuming a simple weight factor $ c $ for each type of
 arithmetic operations, 
 the revised workload can be represented as follows:
@@ -186,20 +189,22 @@ the revised workload can be represented as follows:
 		Workload = \sum_{i=1}^{types} \left(c(i)\times W_{ops}(i)\right)
 \end{equation}
 % workload_{system}
+%
+This workload formula is termed the ``application workload'' in this paper.
+The application workload in (\ref{eq:application-workload}) is a simple
+representation of the workload encountered at the application level 
+using the original arithmetic.
+It provides a reasonable relationship between the
+the change in the algorithm and the resulting change in the workload at
+application level.
 
-\noindent This workload formula is termed the ``application workload'' in this paper.
-Equation~(\ref{eq:application-workload})
-is a simple representation of the workload encountered at the application level 
-using the original arithmetic,
-and provides an easy-to-understand relationship between the change
-in the algorithm and the resulting change in the application workload.
-
-The application performance is evaluated based on the elapsed time as representing in the following expression.
+The performance is defined based on the workload and the elapsed time
+as represented in the following expression.
 \begin{align}\label{eq:performance-workload-time}
 Performance = Workload / Time 
 \end{align}
-
-\noindent For example, Linpack (HPCC)~\cite{}
+%
+For example, Linpack (HPCC)%~\cite{}
 workload is calculated based on the arithmetic workload formula
 using the addition and multiplication terms.
 \begin{align}
@@ -207,7 +212,7 @@ using the addition and multiplication terms.
 		W_{ops}(add) & = W_{ops}(mult) = 1/3 N^{3} + 3/4 N^{2}
 \end{align}
 where N is the size of the matrix to be solved.
-Linpack performance value "flops" are reported using this workload as
+Linpack performance value "flops" is reported using this workload as
 \begin{align*}
 Gflops = N^{2} \times ( 2/3 * N + 3/2 ) \times 1.0^{-9} / Time 
 \end{align*}
@@ -220,16 +225,16 @@ The workload formulation in the form of
 \eqref{eq:arithmetic-workload}
 or
 \eqref{eq:application-workload}
-provides a general idea of the theoretical workload requirement by a particular
-application.
+provides a general idea of the theoretical workload requirement by
+a particular application.
 PMlib can be used to formulate these arithmetic and application workloads
 as explained in section~\ref{section:PMlib}.
 
 \subsection{System perspective}
 \label{subsection:system-perspective}
 
-It may be difficult to formulate the arithmetic workload
-or the application workload for large-scale applications.
+Formulating the arithmetic workload or the application workload
+for large-scale applications is not a trivial task.
 Even if the workload formulation is accomplished,
 the mapping of weight factor may become complicated.
 Mapping mathematical functions to native instructions
@@ -265,8 +270,8 @@ PAPI has its own HWPC event mnemonics for each type of processor,
 and PMlib translates and
 calculates the computing workload from the executed instructions.
 HWPC report provides processor specific hardware utilization reports
-including categorized SIMD instruction statistics,
-layered cache hit/miss rate, and the corresponding bandwidth to/from memory.
+including categorized SIMD instruction statistics, layered cache
+hit/miss rate, and the effective bandwidth of memory.
 
 For example, floating point operations on
 Intel Xeon Skylake Gold processor % no citation \cite{skylake-1} 
@@ -302,10 +307,12 @@ including single and double precision data types.
 			& + 4.0*\mathrm{fpsp4} + 8.0*\mathrm{fpsp8} + 16.0*\mathrm{fpsp16} \nonumber \\
 			& + 2.0*\mathrm{fpdp2} + 4.0*\mathrm{fpdp4} + 8.0*\mathrm{fpdp8}
 \end{align}
-
-\noindent The workload measured using this approach is termed the HWPC workload,
-and the performance is evaluated as HWPC.
+%
+The workload measured using this approach is termed the HWPC workload,
+and the corresponding performance is termed HWPC performance.
 HWPC performance is commonly used for HPC system evaluations.
+The terms HWPC performance and system performance are used synonymously
+in this paper.
 
 %
 \subsection{Difference in workloads}
@@ -319,10 +326,11 @@ Fig.~\ref{fig:workload-user} and Fig.~\ref{fig:workload-system} show
 the performance results based on the workload defined in the above context.
 The vertical axis represents the performance corresponding to the workload as
 defined by \eqref{eq:performance-workload-time}.
-In order to obtain these results, the PMlib user mode report and PMlib HWPC mode
-reports were used.
+In order to obtain these results, the PMlib user mode report and PMlib HWPC
+mode reports were used.
 % IVY case
-Fig.~\ref{fig:workload-difference} shows the difference between these two parameters as a ratio.
+Fig.~\ref{fig:workload-difference} shows the difference between these two
+parameters as a ratio.
 %
 % FX100 case
 % To be moved to section \ref{subsection:basic-kernels}.
@@ -455,7 +463,7 @@ PMlib API accepts the argument which holds the value or the formula of the workl
 The number of arithmetic operations or the formula must be explicitly
 provided by users. Counting the number of operations in the source can be a tedious job.
 If the application is written in Fortran,
-we can take exploit the related research~\cite{Hoshimoto:2015},~\cite{ccaebt:HPCAsia2018}
+we can utilize the related research~\cite{Hoshimoto:2015},~\cite{ccaebt:HPCAsia2018}
 to allow the parser program to analyze the arithmetic operations
 included in the Fortran source blocks and produce JSON intermediate reports.
 At this point, a second filter can be used to produce the
@@ -466,7 +474,7 @@ Fig.~\ref{fig:ccaebt4PMlib} shows the schematic flow used to accomplish this pro
 \begin{figure}[tb]
 \centering
 \includegraphics[width=0.5\textwidth]{figs/ccaebt4PMlib.pdf}
-\caption{Counting the operation with ccaebt}
+\caption{Counting the operation with ccaebt parser program}
 \label{fig:ccaebt4PMlib}
 \end{figure}
 
@@ -491,9 +499,9 @@ portability. That is, PMlib chooses and reads the appropriate HWPC event
 set, if the application runs on different HPC systems.
 
 \subsection{High-resolution timer available to PMlib}
-PMlib is a portable package that utilizes the linux standard timer
-gettimeofday by default. It also has the installation option to utilize
-a system specific high-resolution low-a overhead timer if such timer is
+PMlib is a portable package that utilizes the Linux standard timer
+{\tt gettimeofday} by default. It also has the installation option to utilize
+a system specific high-resolution low overhead timer if such timer is
 available on the platform.
 
 Fig.~\ref{fig:precise-timer} shows a comparison of a standard timer and
@@ -513,7 +521,7 @@ PMlib has a provision to use them as an installation option.
 The default output information from PMlib is a blocked text report based on
 the time-averaged performance statistics.
 PMlib is also able to produce the Open Trace Format (OTF) tracing file
-reflecting the shorter interval statistics for visualizatio.
+reflecting the shorter interval statistics for visualization.
 %
 %	OTF can be read by a Web browser visualization tool TRAiL.
 %	\begin{figure}[tb]
@@ -523,7 +531,7 @@ reflecting the shorter interval statistics for visualizatio.
 %	\label{fig:TRAiL}
 %	\end{figure}
 
-\subsection{other performance evaluation tools and related research}
+\subsection{Other performance evaluation tools and related research}
 \label{subsection:related-research}
 Numerous tools have been developed to evaluate the performance of HPC systems.
 In general, open source tools are designed to be portable.
@@ -557,7 +565,7 @@ PMlib appears to be the only tool that enables arithmetic and/or application
 workload evaluation.
 
 %%
-\section{performance evaluation using PMlib}
+\section{Performance evaluation using PMlib}
 \label{section:using-PMlib}
 
 Some examples that involve the use of PMlib for performance evaluation are shown in this
@@ -635,14 +643,14 @@ CMG }\\
 \end{table}
 
 %
-\subsection{basic kernels}
+\subsection{Basic kernels}
 \label{subsection:basic-kernels}
 
 The basic kernels which are composed of four basic arithmetic operations in addition to the square root operation
 are evaluated first.
 The Fortran source program for measuring kernels is shown in List 1.
 
-\begin{lstlisting}[caption={basic kernels(essential lines only)}]
+\begin{lstlisting}[caption={basic kernels (partial list)}]
 subroutine sub_add(a,b,c,n)
 do i=1,n
 c(i)=a(i)+b(i)
@@ -679,12 +687,12 @@ These basic kernels are computed as single-strided loops without dependencies.
 %	They are expected to be efficiently processed by exploiting
 %	parallel execution pipelines and wide units.
 A compile option to assign double precision to real variables is enabled,
-and automatic parallelization is disbled.
+and automatic parallelization is disabled.
 So the kernels are simply vectorized as wide SIMD instructions and
 executed on execution pipelines on the measuring systems.
 The terms vectorization and SIMD are used synonymously hereafter.
 
-\subsection{kernel performance on FX100 in long loops}
+\subsection{Kernel performance on FX100 in long loops}
 \label{subsection:long-kernels-fx100}
 %
 % We must cut the following important remarks because of the short space.
@@ -710,7 +718,7 @@ a standard deviation window.
 \fi
 %
 %
-Figure~\ref{fig:fx100-gflops-user-long-R8} shows the 
+Fig.~\ref{fig:fx100-gflops-user-long-R8} shows the 
 performance of the basic kernels based on the arithmetic workload,
 i.e. user performance,
 measured on an FX100 system using the loop length of
@@ -719,10 +727,12 @@ n=1,2,4,..,2^{24}
 \end{math}
 .
 %	the noise has been removed as indicated above.
-Figure~\ref{fig:fx100-gflops-system-long-R8} shows the 
+Fig.~\ref{fig:fx100-gflops-system-long-R8} shows the 
 performance based on the system workload, i.e. system performance.
 
-\begin{figure}[tb]
+%	revert for double blind
+\begin{figure}[b]
+%	\begin{figure}[tb]
 \centering
 \includegraphics[width=0.45\textwidth]{figs/fx100-gflops-user-long-R8.pdf}
 \caption{user performance of FX100 for basic kernels}
@@ -747,13 +757,13 @@ the performance of add/mult/fma tends to improve with an increase of
 the loop length until the L1 cache size limit is reached,
 and subsequently drops to the bandwidth constrained performance level
 of the next level cache.
-This performance trend for add/mult/fma is consistent with the reports
+This performance tendency for add/mult/fma is consistent with the reports
 from other related research investigations.
 It can be associated with the
-the roofline \cite{Williams:2009}
+the roofline~\cite{Williams:2009}
 envelop which is shown in Fig.~\ref{fig:roofline-fx100}
 
-The performance of div/sqrt/mix shows quite different shape.
+The performance of div/sqrt/mix shows quite different tendency, and
 Their system performance stays much higher than the user performance.
 
 PMlib HWPC report for this case is shown in Table~\ref{tab:PMlib-report-HWPC}.
@@ -784,29 +794,35 @@ directly obtained from HWPC\_CHOOSER=FLOPS setting.
 Without having to read the assembly code generated by the compiler,
 users can capture some idea from the statistics of PMlib HWPC report.
 \begin{table}[b]
-\scriptsize
+%	\begin{center}
+%	\scriptsize
+\centering
 \caption{PMlib HWPC report(edited)}
 \label{tab:PMlib-report-HWPC}
 \footnotesize
 \input{figs/stdout.PMlib-report-HWPC.txt}
+%	\end{center}
 \end{table}
 
 The reason for div/sqrt/mix performance curves not having the drop near
-the L1 cache size limit is explained by the high computational destity.
+the L1 cache size limit is explained by the high computational density.
 \begin{table}[b]
 %	\scriptsize
-\caption{ratio of system/user performance for basic kernels}
+%	\begin{center}
+\centering
+\caption{ratio of system/user performance of FX100 for basic kernels}
 \label{tab:ratio-system-user-fx100}
 %	\footnotesize
 \begin{tabular}{l|c|c|c|c|c|c} \hline
 %	\scriptsize
-type &	add	&	mult &	fma &	divi &	sqrt &	mix \\ \hline
+type &	add	&	mult &	fma &	div &	sqrt &	mix \\ \hline
 ratio &	1.0 &	1.0 &	1.0 &	12.0 &	18.0 &	38.0 \\ \hline 	
 \end{tabular}
+%	\end{center}
 \end{table}
 
 
-\subsection{kernel performance on FX100 in short loops}
+\subsection{Kernel performance on FX100 in short loops}
 \label{subsection:short-kernels-fx100}
 
 In the short loop region,
@@ -833,7 +849,7 @@ and double precision data types is given as:
 			& + 8.0*\mathrm{fpdp8} + 16.0*\mathrm{fpdp1} 
 \end{align}
 
-Figures~\ref{fig:fx100-gflops-short-R8}
+Fig.~\ref{fig:fx100-gflops-short-R8}
 shows the close-up performance characteristics of the same kernels for
 \begin{math}
 n=1,2,3,..,50
@@ -851,7 +867,7 @@ For example, FX100 double precision (64 bits) arithmetic can utilize
 .
 So the performance is the best at 4n, then 4n+1, followed by 4n+2,
 and lowest at 4n+3.
-Figure~\ref{fig:fx100-gflops-short-R8} highlights the fact that
+Fig.~\ref{fig:fx100-gflops-short-R8} highlights the fact that
 program coding practices that maintain the loop length as a multiple of
 the SIMD width has a significant impact, especially for short loop computation.
 For single precision (32 bits), the interval becomes
@@ -876,8 +892,8 @@ Fig.~\ref{fig:fx100-gflops-short-R4} for FX100.
 \end{figure}
 
 IVY also shows the similar performance characteristics.
-Figure.~\ref{fig:ivy-gflops-short-R8} shows the user performance
-of the same basic kernels on IVY. The stepping effect of SIMD on IVY
+Fig.~\ref{fig:ivy-gflops-short-R8} shows the user performance
+of the same basic kernels on IVY. The stepping behavior of SIMD on IVY
 appears to be less than that of FX100.
 \begin{figure}[tb]
 \centering
@@ -886,10 +902,9 @@ appears to be less than that of FX100.
 \label{fig:ivy-gflops-short-R8}
 \end{figure}
 
-
 These examples demonstrate the usefulness of PMlib user mode
 and HPWC mode measurements in understanding the performance
-gap within a program block of interest.
+within a program block of interest.
 
 %
 % No space. STREAM subsection is omitted.
@@ -897,7 +912,7 @@ gap within a program block of interest.
 \if 0
 \subsection{STREAM}
 \label{subsection:STREAM}
-STREAM benchmark \cite{stream:1995}
+STREAM benchmark~\cite{stream:1995}
 has been widely used to measure the memory bandwidth of computer systems.
 The standard output of this benchmark includes information on the
 basic arithmetic performance of copy, multiplication, addition,
@@ -910,10 +925,10 @@ Although this paper does not intend to provide an exhaustive review of this proc
 a few points of interest related to the bandwidth are presented.
 
 The STREAM Fortran OpenMP result for IVY using 8 threads packed in a CPU
-is shown first in fig.\ref{fig:stream-ivy-1cpux8T}.
+is shown first in Fig.~\ref{fig:stream-ivy-1cpux8T}.
 Then, we compare fig.\ref{fig:stream-ivy-1cpux8T}
 with
-fig.\ref{fig:stream-ivy-4cpux2T}, 
+Fig.~\ref{fig:stream-ivy-4cpux2T}, 
 which shows the result using 8 threads scattered over 4 CPUs.
 
 The values reported by STREAM for packed thread assignment is better
@@ -949,25 +964,28 @@ if the streaming-store option is used.
 %
 %%
 \section{Conclusion}
-In evaluating the application performance of HPC systems,
-user perspective and system perspective are both important,
-and they often exhibit different characteristics.
-
-PMlib is an open source library that provides some key features
-addressing the synthetic performance evaluation from both of
-user perspective and system perspective,
-as explained in
-Section.~\ref{section:PMlib}
-and
-Section.~\ref{section:using-PMlib}.
-It also provides useful information including the process level and the
-thread level HWPC statistics reports,
-and optional OTF file output for visualization.
-PMlib is a small and portable package that facilitates
-a deeper understanding of the performance model
-of an application for a specific HPC system.
+In this paper, we discussed the importance of multi-perspective evaluation
+to understand the difference between the arithmetic workload coded as
+the source program and the system workload executed as machine instructions,
+which explains the gap between the performance
+expected by users and the actually achieved performance on HPC systems.
+We presented an open source library called PMlib, which analyzes the behavior
+of these workloads.
+PMlib provides an avenue for reporting the arithmetic/application workload
+that is manually counted from a source code, as well as the actually executed
+system workload.
+It also provides detailed utilization reports of processor-specific hardware
+including the categorized SIMD instruction statistics, the layered cache
+hit/miss rate, and the effective memory bandwidth,
+which are captured via hardware performance counters through PAPI library.
+We could clarify the distinctive behavior by applying the PMlib to a target
+program on different hardware architectures, and also verified that PMlib
+allows users to conduct synthetic analyses of application performance,
+thus enabling the users to obtain useful feedback for further optimizations
+and better performance.
 
 \section*{Acknowledgment}
+This research used some computational resources of the K computer at the RIKEN Center for Computational Science in Kobe, Japan, and was carried out using the computer resources offered under the category of a general project by the Research Institute for Information Technology, Kyushu University.
 %	\section*{References}
 \bibliographystyle{jplain}
 \bibliography{PMlib}
