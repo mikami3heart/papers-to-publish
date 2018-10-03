@@ -63,8 +63,8 @@ For instance, from the system architecture perspective,
 evaluating the characteristics of microarchitecture elements such as
 processor core and memory is valuable.
 From the user perspective, correlating the theoretical computation coded
-as a source program with the actual computation workload of the compilers
-is also of significance.
+as a source program with the actual computation workload produced by the
+compilers is also of significance.
 An open source library called PMlib was developed to address these types
 of synthetic evaluations.
 PMlib provides an avenue for reporting the arithmetic/application workload
@@ -112,9 +112,8 @@ conducted workload/elapsed time.
 It should be noted that there are two factors that define the workload
 of a program in regard to performance measurement. 
 One is the arithmetic workload defined in the applications source program,
-and the other is the system workload that is actually executed on HPC systems.
-This is represented as machine instructions and is measured with
-hardware performance counters (HWPC).
+and the other is the system workload defined as the set of
+machine instructions executed on HPC systems.
 The difference in the performance based on these two workload definitions
 can be significant, as explained in section \ref{workload-evaluation},
 and is sometimes confusing to application users with respect to an
@@ -124,8 +123,9 @@ PMlib~\cite{PMlib:webpage-public}, an open source library for performance
 evaluation has the functionality
 to explicitly measure the arithmetic workload counted in the source program
 using a manually formulated argument, as well as the functionality
-to automatically measure the HWPC event base workload,
-thus providing users with the option to compare the difference in workloads.
+to automatically measure the system workload based on the statistics
+obtained from the hardware performance counters (HWPC),
+thus providing users the option to compare the difference in workloads.
 
 In measuring HWPC events, PMlib utilizes PAPI~\cite{PAPI:5.6} low-level API.
 PMlib has its own scheme for choosing related HWPC event sets and for sorting
@@ -134,13 +134,6 @@ easier to extract the statistics of interest.
 Choosing the correct set of events for specific processor types and
 translating the accumulated counts into meaningful performance indices can be
 a non-trivial task if without PMlib.
-The default output information from PMlib is a blocked text report based on
-the time-averaged performance statistics.
-It also produces the
-Open Trace Format~\cite{Knupfer:2006},~\cite{OTF:webpage-public}
-tracing file that contains
-the shorter interval statistics which can be read by a Web browser
-visualization tool.  % TRAiL~\cite{trail}~.%
 
 This paper first clarifies the difference between the arithmetic workload and
 the system workload.
@@ -190,16 +183,17 @@ the revised workload can be represented as follows:
 \end{equation}
 % workload_{system}
 %
-This workload formula is termed the ``application workload'' in this paper.
-The application workload in (\ref{eq:application-workload}) is a simple
-representation of the workload encountered at the application level 
-using the original arithmetic.
-It provides a reasonable relationship between the
-the change in the algorithm and the resulting change in the workload at
-application level.
+The workload in this form \eqref{eq:application-workload}
+is termed the ``application workload'' in this paper.
+If the weight factor stays constant across different execution context,
+the application workload
+can be regarded as a simple and direct representation of the encountered
+workload at application level.
+It is a useful formula to display the volume of numerical computation
+for a proposed algorithm.
 
-The performance is defined based on the workload and the elapsed time
-as represented in the following expression.
+The computational performance is defined based on the workload and
+the elapsed time as represented in the following expression.
 \begin{align}\label{eq:performance-workload-time}
 Performance = Workload / Time 
 \end{align}
@@ -232,11 +226,9 @@ as explained in section~\ref{section:PMlib}.
 
 \subsection{System perspective}
 \label{subsection:system-perspective}
-
-Formulating the arithmetic workload or the application workload
-for large-scale applications is not a trivial task.
-Even if the workload formulation is accomplished,
-the mapping of weight factor may become complicated.
+%
+%
+The mapping of weight factor may become complicated.
 Mapping mathematical functions to native instructions
 depends not only on the system architecture, but also on the compilers
 and their optimization options.
@@ -458,17 +450,20 @@ FLOPS\textbar BANDWIDTH\textbar VECTOR\textbar CACHE\textbar CYCLE%
 \end{small}
 \end{quote}
 
-%If the arithmetic workload is measured,
-PMlib API accepts the argument which holds the value or the formula of the workload that contains the number of arithmetic operations, inside the section sandwiched by start and stop statements.
-The number of arithmetic operations or the formula must be explicitly
-provided by users. Counting the number of operations in the source can be a tedious job.
+If the arithmetic workload is measured,
+The number of arithmetic operations or the formula defining the workload
+must be provided to PMlib API as user argument.
+PMlib accumulates the workload per section sandwiched by start and stop APIs.
+In practice, counting the number of arithmetic operations in the application
+source code can be a non-trivial task, and automating such a task is desirable.
+%
 If the application is written in Fortran,
 we can utilize the related research~\cite{Hoshimoto:2015},~\cite{ccaebt:HPCAsia2018}
-to allow the parser program to analyze the arithmetic operations
-included in the Fortran source blocks and produce JSON intermediate reports.
-At this point, a second filter can be used to produce the
-Fortran source program including PMlib API calls with
-provisioned arguments for PMlib.
+to let the parser program analyze the Fortran source code
+and produce JSON intermediate reports showing the arithmetic operations counts.
+Then, a second filter can be used to produce the partial Fortran source program
+including call statements for PMlib API with provisioned arguments.
+{\color{blue} Remark. This second filter is under development as of this paper.  }
 Fig.~\ref{fig:ccaebt4PMlib} shows the schematic flow used to accomplish this process.
 
 \begin{figure}[tb]
@@ -520,16 +515,20 @@ PMlib has a provision to use them as an installation option.
 \label{subsection:PMlib-output-information}
 The default output information from PMlib is a blocked text report based on
 the time-averaged performance statistics.
-PMlib is also able to produce the Open Trace Format (OTF) tracing file
-reflecting the shorter interval statistics for visualization.
+PMlib is also able to produce the
+Open Trace Format (OTF)~\cite{Knupfer:2006},~\cite{OTF:webpage-public}
+tracing files that may contain the shorter interval statistics for visualization.
 %
-%	OTF can be read by a Web browser visualization tool TRAiL.
+%	In future papers, we may include TRAiL contents
+%
+%	Web browser visualization tool TRAiL~\cite{trail}~.%
 %	\begin{figure}[tb]
 %	\centering
 %	\includegraphics[width=0.45\textwidth]{figs/TRAiL-small.pdf}
 %	\caption{tracing visualization using PMlib and TRAiL}
 %	\label{fig:TRAiL}
 %	\end{figure}
+
 
 \subsection{Other performance evaluation tools and related research}
 \label{subsection:related-research}
