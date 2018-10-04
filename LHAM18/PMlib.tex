@@ -116,7 +116,7 @@ and the other is the system workload defined as the set of
 machine instructions executed on HPC systems.
 The difference in the performance based on these two workload definitions
 can be significant, as explained in section \ref{workload-evaluation},
-and is sometimes confusing to application users with respect to an
+and is sometimes confusing to application users with respect to
 understanding their behavior.
 
 PMlib~\cite{PMlib:webpage-public}, an open source library for performance
@@ -133,7 +133,7 @@ out event statistics according to the run-time environment variables, making it
 easier to extract the statistics of interest.
 Choosing the correct set of events for specific processor types and
 translating the accumulated counts into meaningful performance indices can be
-a non-trivial task if without PMlib.
+a non-trivial task without PMlib.
 
 This paper first clarifies the difference between the arithmetic workload and
 the system workload.
@@ -145,14 +145,12 @@ are shown, that highlight the merits of multi-perspective analysis.
 \section{Computational workload and Performance evaluation}
 \label{workload-evaluation}
 
-%
 \subsection{User perspective}
 \label{subsection:user-perspective}
 
-The computational workload for scientific application developers
-is generally perceived as the total volume of arithmetic operations,
-expressed by the formulas in the source code written in Fortran/C/C++ etc.
-
+The computational workload is generally perceived by scientific application
+developers as the total volume of arithmetic operations,
+expressed by the source code formulas written in Fortran/C/C++ etc.
 The workload at this level can be simply represented as below:
 %	\begin{align}
 %	\end{align}
@@ -171,13 +169,14 @@ amount of arithmetic workload based on scientific considerations,
 with the objective of reducing the elapsed time to obtain the desired
 simulation results.
 
-The source code is then compiled to corresponding assembly instructions.
-Each arithmetic statement is mapped to a sequence of multiple instructions.
-The ``Weight factor'' can be used to map the original arithmetic operations
-to the generated instructions to quantify the relationship.
-Assuming a simple weight factor $ c $ for each type of
-arithmetic operations, 
-the revised workload can be represented as follows:
+
+After compiling the source code, each arithmetic statement is translated to
+the corresponding sequence of assembly instructions.
+In order to simply map the relationship between the source level arithmetic
+and the assembly instructions which have different
+execution latency and throughput,
+we can use a weight factor $ c $ for each type of arithmetic operations.
+Then the revised workload can be represented as follows:
 \begin{equation}\label{eq:application-workload}
 		Workload = \sum_{i=1}^{types} \left(c(i)\times W_{ops}(i)\right)
 \end{equation}
@@ -185,21 +184,28 @@ the revised workload can be represented as follows:
 %
 The workload in this form \eqref{eq:application-workload}
 is termed the ``application workload'' in this paper.
-If the weight factor stays constant across different execution context,
-the application workload
-can be regarded as a simple and direct representation of the encountered
-workload at application level.
-It is a useful formula to display the volume of numerical computation
-for a proposed algorithm.
+The workload formulation in the form of
+\eqref{eq:arithmetic-workload}
+or
+\eqref{eq:application-workload}
+provides a general idea of the theoretical workload requirement by
+a particular application.
+PMlib can be used to formulate these arithmetic and application workloads
+as explained in section~\ref{section:PMlib}.
+
 
 The computational performance is defined based on the workload and
 the elapsed time as represented in the following expression.
 \begin{align}\label{eq:performance-workload-time}
 Performance = Workload / Time 
 \end{align}
-%
+
+From user perspective, the performance based on the arithmetic workload
+and the elapsed time is most meaningful,
+and we term it ``user performance'' in this paper.
+
 For example, Linpack (HPCC)%~\cite{}
-workload is calculated based on the arithmetic workload formula
+reports the user performance calculated from the arithmetic workload formula
 using the addition and multiplication terms.
 \begin{align}
 		Workload & = W_{ops}(add) + W_{ops}(mult) \\
@@ -210,25 +216,23 @@ Linpack performance value "flops" is reported using this workload as
 \begin{align*}
 Gflops = N^{2} \times ( 2/3 * N + 3/2 ) \times 1.0^{-9} / Time 
 \end{align*}
+
+%
+The performance based on the application workload is regarded as a simple
+and direct representation of the encountered workload at application level.
+It is a useful metric in the context where the weight factors stay constant.
+
 In the Linpack example, the application performance is based on
 the same weight factor $ c = 1.0 $ 
 for both addition and multiplication, which actually reflects the
 arithmetic workload and performance.
 
-The workload formulation in the form of
-\eqref{eq:arithmetic-workload}
-or
-\eqref{eq:application-workload}
-provides a general idea of the theoretical workload requirement by
-a particular application.
-PMlib can be used to formulate these arithmetic and application workloads
-as explained in section~\ref{section:PMlib}.
 
 \subsection{System perspective}
 \label{subsection:system-perspective}
 %
 %
-The mapping of weight factor may become complicated.
+The mapping of weight factors may become complicated.
 Mapping mathematical functions to native instructions
 depends not only on the system architecture, but also on the compilers
 and their optimization options.
@@ -558,7 +562,7 @@ In the commercial vendor category:
 		\item Intel VTune \cite{Intel:VTune} : Intel processors
 		\item PGI Profiler \cite{PGI:Profiler} : X86 and GPU
 \end{itemize}
-these existing tools all utilize the processor performance information
+These existing tools all utilize the processor performance information
 based on HWPC workload, i.e. system workload.
 PMlib appears to be the only tool that enables arithmetic and/or application
 workload evaluation.
