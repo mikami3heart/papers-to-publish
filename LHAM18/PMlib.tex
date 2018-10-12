@@ -292,7 +292,7 @@ fpdp8  : "FP_ARITH:512B_PACKED_DOUBLE";
 \vspace{1mm}
 The sum of these operations multiplied by the corresponding width
 of the SIMD instruction gives the floating point operation workload
-including single and double precision data types.
+including single precision(32 bits) and double precision(64 bits) data types.
 %	\begin{multline}
 %	W_{hwpc} = fpsp1 + fpdp1 \\
 %		+ 4.0*fpsp4 + 8.0*fpsp8 + 16.0*fpsp16 \\
@@ -386,10 +386,9 @@ A detailed analysis of a similar example is given in section
 
 %
 \subsection {Overview of PMlib}
-PMlib is an open source library for monitoring the performance of scientific applications
-and is able to measure the listed types of workload discussed
-in the previous
-section, i.e. arithmetic, application, and HWPC workloads.
+PMlib is an open source library for monitoring the performance of scientific
+applications and is able to measure the listed types of workload discussed
+in the previous section, i.e. arithmetic, application, and HWPC workloads.
 Users can insert start/stop API statements provided in the source code.
 Each measurement section has minimal properties such as name, type of operation,
 exclusiveness, and workload value.
@@ -467,8 +466,8 @@ to let the parser program analyze the Fortran source code
 and produce JSON intermediate reports showing the arithmetic operations counts.
 Then, a second filter can be used to produce the partial Fortran source program
 including call statements for PMlib API with provisioned arguments.
-{\color{blue} Remark. This second filter is under development as of this paper.  }
-Fig.~\ref{fig:ccaebt4PMlib} shows the schematic flow used to accomplish this process.
+%	{\color{blue} Remark. This second filter is under development as of this paper.  }
+Fig.~\ref{fig:ccaebt4PMlib} shows the schematic view to accomplish this flow.
 
 \begin{figure}[tb]
 \centering
@@ -649,8 +648,8 @@ CMG }\\
 \subsection{Basic kernels}
 \label{subsection:basic-kernels}
 
-The basic kernels which are composed of four basic arithmetic operations in addition to the square root operation
-are evaluated first.
+The basic kernels composed of four basic arithmetic operations, square root
+and reversed distance are evaluated.
 The Fortran source program for measuring kernels is shown in List 1.
 
 \begin{lstlisting}[caption={basic kernels (partial list)}]
@@ -661,7 +660,7 @@ end do
 
 subroutine sub_mult(a,b,c,n)
 do i=1,n
-c(i)=a(i)+b(i)
+c(i)=a(i)*b(i)
 end do
 
 subroutine sub_fma(a,b,c,n)
@@ -686,25 +685,20 @@ c(i)=1.0/sqrt(a(i)**2+b(i)**2)
 end do
 \end{lstlisting}
 
-These basic kernels are computed as single-strided loops without dependencies.
 %	They are expected to be efficiently processed by exploiting
 %	parallel execution pipelines and wide units.
-A compile option to assign double precision to real variables is enabled,
-and automatic parallelization is disabled.
-So the kernels are simply vectorized as wide SIMD instructions and
-executed on execution pipelines on the measuring systems.
-The terms vectorization and SIMD are used synonymously hereafter.
+The choice of data precision, either double or single, is made at compile time,
+and the default optimization is done by the compilers, basically trying to
+exploit SIMD pipelined operations on the measuring systems.
+The copies of the same kernel are run on all cores of the processor.
+The kernels are measured many times, and after the calling overhead
+is subtracted, the average elapsed time including the do loop cost is obtained.
 
 \subsection{Kernel performance on FX100 in long loops}
 \label{subsection:long-kernels-fx100}
 %
 % We must cut the following important remarks because of the short space.
 %
-The computing time of these kernels is measured on FX100 system
-for several iterations.
-After subtracting the calling overhead time,
-the average computing time for each kernel is obtained.
-Note that the do loop cost is included in the average computing time.
 %
 %
 \if 0
@@ -762,12 +756,11 @@ and subsequently drops to the bandwidth constrained performance level
 of the next level cache.
 This performance tendency for add/mult/fma is consistent with the reports
 from other related research investigations.
-It can be associated with the
-the roofline~\cite{Williams:2009}
+It can be associated with the roofline~\cite{Williams:2009}
 envelop which is shown in Fig.~\ref{fig:roofline-fx100}
 
 The performance of div/sqrt/mix shows quite different tendency, and
-Their system performance stays much higher than the user performance.
+their system performance stays much higher than the user performance.
 
 PMlib HWPC report for this case is shown in Table~\ref{tab:PMlib-report-HWPC}.
 Native HWPC events are sorted according to the choice of the
@@ -780,12 +773,12 @@ is the same.
 Compiler optimization transforms
 a division arithmetic statement into a series of reciprocal
 approximation and multiply-add instructions, rather than issuing
-a simple division instruction. They takes advantage of
-data width of SIMD instruction and maintain high flop/byte ratio.
+a simple division instruction. They take advantage of pipelined sequence of
+SIMD instructions and maintain high flop/byte ratio.
 So the apparent HWPC performance of this operation becomes very high,
 but the user perspective performance is much lower, almost the same as
 add/mult in this case. In fact, divide kernel runs much slower than add/mult,
-if not vectorized at all.
+if not pipelined at all.
 The comparison of system/user performance ratio is shown in
 Table~\ref{tab:ratio-system-user-fx100}. The numbers in the table can be
 directly obtained from HWPC\_CHOOSER=FLOPS setting.
@@ -858,11 +851,14 @@ shows the close-up performance characteristics of the same kernels for
 n=1,2,3,..,50
 \end{math}
 .
+
+{\textcolor{blue}{Check!!Check!!}}
+
 The close-up curves do not show the gradual increase. Instead, they
 show the steep stepping shapes at multiples of a constant interval.
 This is a common observation for systems with processors that support SIMD,
 and the interval corresponds to the data width of the SIMD instructions.
-For example, FX100 double precision (64 bits) arithmetic can utilize
+For example, FX100 double precision arithmetic can utilize
 256 bit instructions, and the resulting interval is
 \begin{math}
 256 / 64 = 4
@@ -873,7 +869,7 @@ and lowest at 4n+3.
 Fig.~\ref{fig:fx100-gflops-short-R8} highlights the fact that
 program coding practices that maintain the loop length as a multiple of
 the SIMD width has a significant impact, especially for short loop computation.
-For single precision (32 bits), the interval becomes
+For single precision, the interval becomes
 \begin{math}
 256 / 32 = 8
 \end{math}
@@ -883,27 +879,56 @@ Fig.~\ref{fig:fx100-gflops-short-R4} for FX100.
 \begin{figure}[tb]
 \centering
 \includegraphics[width=0.45\textwidth]{figs/fx100-gflops-short-R8.pdf}
-\caption{FX100 performance close up}
+\caption{FX100 user performance close up}
 \label{fig:fx100-gflops-short-R8}
 \end{figure}
 
 \begin{figure}[tb]
 \centering
 \includegraphics[width=0.45\textwidth]{figs/fx100-gflops-short-R4.pdf}
-\caption{FX100 performance close up for single precision kernels}
+\caption{FX100 user performance close up for single precision kernels}
 \label{fig:fx100-gflops-short-R4}
 \end{figure}
 
-IVY also shows the similar performance characteristics.
-Fig.~\ref{fig:ivy-gflops-short-R8} shows the user performance
-of the same basic kernels on IVY. The stepping behavior of SIMD on IVY
-appears to be less than that of FX100.
+\subsection{Kernel performance on SKY in short loops}
+\label{subsection:short-kernels-sky}
+
+Fig.~\ref{fig:sky-user-short-R8}
+shows the double precision user performance of the same basic kernels on SKY.
+The line shape appears very different from that of FX100.
+The performance increases according to $ n $, and slightly drops
+at $ n+1 $.
+
+
+
+The single precision user performance is similar as shown in
+fig.~\ref{fig:sky-user-short-R4} .
+
+
 \begin{figure}[tb]
 \centering
-\includegraphics[width=0.45\textwidth]{figs/ivy-gflops-short-R8.pdf}
-\caption{user performance of IVY for basic kernels}
-\label{fig:ivy-gflops-short-R8}
+\includegraphics[width=0.45\textwidth]{figs/sky-user-short-R8.pdf}
+\caption{SKY user performance close up}
+\label{fig:sky-user-short-R8}
 \end{figure}
+\begin{figure}[tb]
+\centering
+\includegraphics[width=0.45\textwidth]{figs/sky-user-short-R4.pdf}
+\caption{SKY user performance close up for single precision kernels}
+\label{fig:sky-user-short-R4}
+\end{figure}
+
+% The IVY results are ommited because of paper space.
+%	IVY also shows the similar performance characteristics.
+%	Fig.~\ref{fig:ivy-gflops-short-R8} shows the user performance
+%	of the same basic kernels on IVY. The stepping behavior of SIMD on IVY
+%	appears to be less than that of FX100.
+%	\begin{figure}[tb]
+%	\centering
+%	\includegraphics[width=0.45\textwidth]{figs/ivy-gflops-short-R8.pdf}
+%	\caption{user performance of IVY for basic kernels}
+%	\label{fig:ivy-gflops-short-R8}
+%	\end{figure}
 
 These examples demonstrate the usefulness of PMlib user mode
 and HPWC mode measurements in understanding the performance
@@ -912,58 +937,58 @@ within a program block of interest.
 %
 % No space. STREAM subsection is omitted.
 %
-\if 0
-\subsection{STREAM}
-\label{subsection:STREAM}
-STREAM benchmark~\cite{stream:1995}
-has been widely used to measure the memory bandwidth of computer systems.
-The standard output of this benchmark includes information on the
-basic arithmetic performance of copy, multiplication, addition,
-and multiplication\&addition, i.e. arithmetic workload perspective.
-
-STREAM HWPC performance shows different characteristics compared to
-the reported STREAM arithmetic performance. Their performance is influenced by
-the combined effect of compilers and their optimization options.
-Although this paper does not intend to provide an exhaustive review of this process,
-a few points of interest related to the bandwidth are presented.
-
-The STREAM Fortran OpenMP result for IVY using 8 threads packed in a CPU
-is shown first in Fig.~\ref{fig:stream-ivy-1cpux8T}.
-Then, we compare fig.\ref{fig:stream-ivy-1cpux8T}
-with
-Fig.~\ref{fig:stream-ivy-4cpux2T}, 
-which shows the result using 8 threads scattered over 4 CPUs.
-
-The values reported by STREAM for packed thread assignment is better
-if the streaming-store option is used.
-%
-%	% minipage
+%	\if 0
+%	\subsection{STREAM}
+%	\label{subsection:STREAM}
+%	STREAM benchmark~\cite{stream:1995}
+%	has been widely used to measure the memory bandwidth of computer systems.
+%	The standard output of this benchmark includes information on the
+%	basic arithmetic performance of copy, multiplication, addition,
+%	and multiplication\&addition, i.e. arithmetic workload perspective.
+%	
+%	STREAM HWPC performance shows different characteristics compared to
+%	the reported STREAM arithmetic performance. Their performance is influenced by
+%	the combined effect of compilers and their optimization options.
+%	Although this paper does not intend to provide an exhaustive review of this process,
+%	a few points of interest related to the bandwidth are presented.
+%	
+%	The STREAM Fortran OpenMP result for IVY using 8 threads packed in a CPU
+%	is shown first in Fig.~\ref{fig:stream-ivy-1cpux8T}.
+%	Then, we compare fig.\ref{fig:stream-ivy-1cpux8T}
+%	with
+%	Fig.~\ref{fig:stream-ivy-4cpux2T}, 
+%	which shows the result using 8 threads scattered over 4 CPUs.
+%	
+%	The values reported by STREAM for packed thread assignment is better
+%	if the streaming-store option is used.
+%	%
+%	%	% minipage
+%	%	\begin{figure}[tb]
+%	%	\begin{minipage}{0.48\hsize}
+%	%	\includegraphics[width=0.98\textwidth]{figs/stream-ivy-1cpux8T.pdf}
+%	%	\caption{stream-ivy-1cpux8T}
+%	%	\label{fig:stream-ivy-1cpux8T}
+%	%	\end{minipage}
+%	%	\begin{minipage}{0.48\hsize}
+%	%	\includegraphics[width=0.98\textwidth]{figs/stream-ivy-4cpux2T.pdf}
+%	%	\caption{stream-ivy-4cpux2T}
+%	%	\label{fig:stream-ivy-4cpux2T}
+%	%	\end{minipage}
+%	%	\end{figure}
+%	%
 %	\begin{figure}[tb]
-%	\begin{minipage}{0.48\hsize}
-%	\includegraphics[width=0.98\textwidth]{figs/stream-ivy-1cpux8T.pdf}
-%	\caption{stream-ivy-1cpux8T}
+%	\centering
+%	\includegraphics[width=0.45\textwidth]{figs/stream-ivy-1cpux8T.pdf}
+%	\caption{Stream-ivy-1cpux8T}
 %	\label{fig:stream-ivy-1cpux8T}
-%	\end{minipage}
-%	\begin{minipage}{0.48\hsize}
-%	\includegraphics[width=0.98\textwidth]{figs/stream-ivy-4cpux2T.pdf}
-%	\caption{stream-ivy-4cpux2T}
-%	\label{fig:stream-ivy-4cpux2T}
-%	\end{minipage}
 %	\end{figure}
-%
-\begin{figure}[tb]
-\centering
-\includegraphics[width=0.45\textwidth]{figs/stream-ivy-1cpux8T.pdf}
-\caption{Stream-ivy-1cpux8T}
-\label{fig:stream-ivy-1cpux8T}
-\end{figure}
-\begin{figure}[tb]
-\centering
-\includegraphics[width=0.45\textwidth]{figs/stream-ivy-4cpux2T.pdf}
-\caption{Stream-ivy-4cpux2T}
-\label{fig:stream-ivy-4cpux2T}
-\end{figure}
-\fi
+%	\begin{figure}[tb]
+%	\centering
+%	\includegraphics[width=0.45\textwidth]{figs/stream-ivy-4cpux2T.pdf}
+%	\caption{Stream-ivy-4cpux2T}
+%	\label{fig:stream-ivy-4cpux2T}
+%	\end{figure}
+%	\fi
 %
 %%
 \section{Conclusion}
