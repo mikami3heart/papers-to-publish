@@ -166,21 +166,6 @@ amount of arithmetic workload based on scientific considerations,
 with the objective of reducing the elapsed time to obtain the desired
 simulation results.
 
-Compilers translate the arithmetic statements into the sequence of
-assembly instructions.
-In order to simply map the relationship between the source level arithmetic
-and the corresponding assembly instructions,
-we can use a weight factor $ c $  % for each type of arithmetic operations.
-representing the latency and throughput of the instructions
-by an averaged value.
-Then the revised workload representation becomes as follows:
-\begin{equation}\label{eq:application-workload}
-		Workload = \sum_{i=1}^{types} \left(c(i)\times W_{ops}(i)\right)
-\end{equation}
-%
-The workload in the form of \eqref{eq:application-workload}
-is termed the ``application workload'' in this paper.
-
 The computational performance is defined based on the workload and
 the elapsed time as represented in the following expression.
 \begin{align}\label{eq:performance-workload-time}
@@ -188,7 +173,7 @@ Performance = Workload / Time
 \end{align}
 %
 The performance based on the arithmetic workload \eqref{eq:arithmetic-workload}
-and the elapsed time is most meaningful from user perspective,
+is most meaningful from user perspective,
 and we term it ``user performance'' in this paper.
 %
 For example, Linpack (HPCC)%~\cite{}
@@ -203,60 +188,66 @@ Linpack performance value "flops" is reported using this workload as
 Gflops = N^{2} \times ( 2/3 * N + 3/2 ) \times 1.0^{-9} / Time 
 \end{align}
 
-The performance based on the application workload
-\eqref{eq:application-workload}
-is a simple approximation of the actually executed workload,
-and it can be a useful model in the context where the usage of
-a weight factor stays valid.
+It is natural to extend the above concept and evaluate the actually executed
+system workload using the arithmetic operations.
+Compilers translate the arithmetic statements into the sequence of
+assembly instructions.
+In order to simply map the relationship between the source level arithmetic
+and the corresponding assembly instructions,
+we can apply weight factors to \eqref{eq:arithmetic-workload}.
+A weight factor $ c(i) $ is assumed to represent the combined effect of
+the latency and throughput of the instructions needed for $ i $-th
+arithmetic type. %, which is rather strong assumption.
+Then the workload is represented as:
+\begin{equation}\label{eq:application-workload}
+		Workload = \sum_{i=1}^{types} \left(c(i)\times W_{ops}(i)\right)
+\end{equation}
+%
+The workload in the form of \eqref{eq:application-workload}
+is termed ``application workload'' in this paper.
+It approximates the actually executed system workload in a simple form
+and the ``application performance'' can be defined in the same manner.
+It can be a useful model in qualitative analyses.
+In quantitative evaluations,  however, the availability of
+application workload and performance is limited.
+% The mapping of mathematical functions to native instructions can be complicated,
+% since it depends not only on the system architecture, but also on the compilers.
+The mapping of mathematical functions to native instructions 
+depends not only on the system architecture, but also on the compilers.
+There are multiple choices of available instructions to accomplish an
+arithmetic operation on modern processors, and their associated latency
+and throughput vary significantly.
+The compiler may choose scalar/vector context based on
+the its optimization strategy, as well as the degree of parallelism
+according to the loop length and the operation density.
+Therefore, the mapping need to be examined for all possible cases.
+With this reason, the actually executed system workload is better evaluated
+from the system perspective as discussed next.
 
-PMlib can be used to formulate these types of
-workload and performance
-as explained in section~\ref{section:PMlib}.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
+%
 \subsection{System perspective}
 \label{subsection:system-perspective}
-%
-%
-The mapping of weight factors may become complicated.
-Mapping mathematical functions to native instructions
-depends not only on the system architecture, but also on the compilers
-and their optimization options.
-There are multiple choices of available instructions for the same
-arithmetic operation for modern processors.
-The choice of instructions from the scalar/vector syntax is made based on the
-compiler's optimization strategy.
-For instance in vector operation, compiler may choose
-the degree of parallelism, i.e. width of simultaneous data operation,
-according to the loop length and the operation density.
-In scalar operation, the data locality is influential.
-Run-time hardware behavior including out-of-order execution cannot
-be correlated to a static weight factor.
-A simple instruction latency and throughput model may not take this issue
-into account.
 
 It this section, we will focus on workload and performance from
-a system perspective.
+the system perspective.
 The micro-architecture elements including the number of computation cores
 in a processor, the degree of parallelism inside each core,
 the depth of cache/memory hierarchy and the data move rate at each hierarchy,
 all have relational impact on how machine instructions are executed,
 thus leading to sustained computing performance.
 The fact that the actual numerical computation is performed by a
-limited set of hardware components, and the HWPC is available
+limited set of hardware components, and that HWPC is available
 on modern HPC systems, makes it more practical to acquire the HWPC statistics
 for performance evaluation.
+
 HWPC statistics can be accessed through appropriate APIs.
-PMlib utilizes PAPI low-level APIs to access HWPC event statistics.
-PAPI has its own HWPC event mnemonics for each type of processor,
-and PMlib translates and
-calculates the computing workload from the executed instructions.
-HWPC report provides processor specific hardware utilization reports
+PMlib utilizes PAPI low-level APIs to access HWPC event.
+PAPI has its own HWPC event mnemonics for each type of processor, and PMlib
+translates and calculates the computing workload from the executed events.
+
+HWPC provides processor specific hardware utilization event statistics
 including categorized SIMD instruction statistics, layered cache
 hit/miss rate, and the effective bandwidth of memory.
-
 For example, floating point operations on
 Intel Xeon Skylake Gold processor % no citation \cite{skylake-1} 
 are measured as the following events.
@@ -293,10 +284,9 @@ including single precision(32 bits) and double precision(64 bits) data types.
 \end{align}
 %
 The workload measured using this approach is termed the HWPC workload,
-and the corresponding performance is termed HWPC performance.
+and the corresponding performance is termed HWPC performance in this paper.
 HWPC performance is commonly used for HPC system evaluations.
-The terms HWPC performance and system performance are used synonymously
-in this paper.
+The terms HWPC performance and system performance are used synonymously hereafter.
 
 %
 \subsection{Difference in workloads}
@@ -429,7 +419,7 @@ end
 \subsection{Choosing workload type}
 \label{subsection:Choosing-workload-type}
 
-The choice of arithmetic workload or HWPC workload is made by a
+The choice of the workload is made by a
 run-time environment variable HWPC\_CHOOSER.
 A possible choice of the HWPC\_CHOOSER value is:
 \begin{quote}
@@ -638,6 +628,9 @@ CMG }\\
 
 The basic kernels composed of four basic arithmetic operations, square root
 and reversed distance are evaluated.
+The intent is to exploit pipelined SIMD operations on the measuring systems.
+Repeating simple kernels will avoid the unexpectable run-time hardware behavior
+such as out-of-order execution.
 The Fortran source program for measuring kernels is shown in List 1.
 
 \begin{lstlisting}[caption={basic kernels (partial list)}]
@@ -673,14 +666,11 @@ c(i)=1.0/sqrt(a(i)**2+b(i)**2)
 end do
 \end{lstlisting}
 
-%	They are expected to be efficiently processed by exploiting
-%	parallel execution pipelines and wide units.
 The choice of data precision, either double or single, is made at compile time,
-and the default optimization is done by the compilers, basically trying to
-exploit SIMD pipelined operations on the measuring systems.
+and the default optimization is done by the compilers.
 The copies of the same kernel are run on all cores of the processor.
-The kernels are measured many times, and after the calling overhead
-is subtracted, the average elapsed time including the do loop cost is obtained.
+The kernels are measured many times. After the calling overhead is subtracted,
+the average elapsed time including the do loop overhead cost is obtained.
 
 \subsection{Kernel performance on FX100 in long loops}
 \label{subsection:long-kernels-fx100}
