@@ -383,7 +383,7 @@ PMlib provides APIs for C++ and Fortran programs.
 There are only a small number of APIs which must be called from applications.
 C++ APIs are shown in Table~\ref{tab:PMlib-API}. 
 
-\begin{table}[htb]
+\begin{table}[tb]
 %\tiny %\scriptsize %\footnotesize %\small
 \footnotesize
 %	\scriptsize
@@ -407,13 +407,13 @@ The following is an example Fortran program calling PMlib APIs.
 %	\begin{lstlisting}[caption={calling PMlib in Fortran program}]
 \begin{lstlisting}
 program main
-call f_pm_initialize (Nsections)
-call f_pm_setproperties ("section1",icalc,iexcl)
-call f_pm_start ("section1")
-call some_computation (fops)
-call f_pm_stop ("section1",fops,0)
-call f_pm_print ("",0)
-call f_pm_printdetail ("",0,0)
+	call f_pm_initialize (Nsections)
+	call f_pm_setproperties ("section1",icalc,iexcl)
+	call f_pm_start ("section1")
+	call some_computation (fops)
+	call f_pm_stop ("section1",fops,0)
+	call f_pm_print ("",0)
+	call f_pm_printdetail ("",0,0)
 end
 \end{lstlisting}
 
@@ -547,10 +547,8 @@ workload evaluation.
 Some examples of performance evaluation utilizing PMlib are shown in this section.
 The tested programs are the basic kernels composed of
 four basic arithmetic operations, square root and reversed distance.
+The kernels repeat the same operations with loop length hidden to the compiler.
 %
-The intent is to exploit pipelined SIMD operations on the measuring systems.
-Repeating simple kernels will avoid the unexpectable run-time hardware behavior
-such as out-of-order execution.
 The Fortran source of these kernels is shown below.
 %	\begin{lstlisting}[caption={basic kernels (partial list)}]
 \begin{lstlisting}
@@ -582,9 +580,11 @@ subroutine sub_mix(a,b,c,n)
 
 The choice of data precision, either double or single, is made at compile time,
 and the default optimization is done by the compilers.
+The intent is to exploit pipelined SIMD operations on the measuring systems.
 The copies of the same kernel are run on all cores of the processor.
-The kernels are measured many times. After the calling overhead is subtracted,
+The kernels are called many times.  After the calling overhead is subtracted,
 the average elapsed time including the do loop overhead cost is obtained.
+
 
 The servers used for the tests are:
 \begin{itemize}
@@ -660,23 +660,30 @@ Mem GB/s/cpu*	&	120/R+120/W	&	128	\\ \hline
 \subsection{Kernel performance on FX100 in long loops}
 \label{subsection:long-kernels-fx100}
 %
-% We must cut the following important remarks because of the short space.
-%
-%
-%
 \if 0
-Typical HPC systems are simultaneously shared by many users and tend to
-suffer from perturbation influences called noise caused by other processes,
-shared file systems, networks with shared topology, etc.
-This influence is usually more than that of a small dedicated system.
-It is not an easy task to eliminate this noise even for simple measurements 
-when measuring small granularity computation time.
-On the user side, noise elimination can be addressed via statistical
-approaches. These include the addition of an outer loop for repeated
-measurement and the filtering of measurements values that fall outside of
-a standard deviation window.
-\fi
+% We must cut the following important remarks because of the short space.
+% Noise elimination can be a section volume!
+% It is not a simple task to suppress or eliminate the noise from measurements.
+% 
+% OS noise.
+% Various jitter effects cause delay.
+% Shared noise.
+% Typical HPC systems are simultaneously shared by many users and tend to
+% suffer from perturbation influences called noise caused by other processes,
+% including the delay caused by shared file systems, networks congestion, etc.
+% This perturbation influence is usually more apparent on large scale systems.
+% 
+% Dynamic effect.
+% unexpectable run-time hardware behavior such as out-of-order execution.
+% 
+% The countermeasure.
+% On the user side, noise elimination can be addressed via statistical
+% approaches. These include the addition of an outer loop for repeated
+% measurement and the filtering of measurements values that fall outside of
+% a standard deviation window.
 %
+% the noise has been removed as explained here...???
+\fi
 %
 Fig.~\ref{fig:fx100-gflops-user-long-R8} shows the 
 user performance,i.e. arithmetic performance, of the basic kernels
@@ -686,9 +693,30 @@ for the loop length of
 n=1,2,4,..,2^{24}
 \end{math}
 .
-%	the noise has been removed as indicated above.
+
 Fig.~\ref{fig:fx100-gflops-system-long-R8} shows the 
 system performance based on the HWPC workload.
+The HWPC workload of the floating point operations on FX100 is
+recorded as events sorted by SIMD width as below.
+%	\begin{figure}[H]
+%	\end{figure}
+\begin{quote}
+\begin{small}
+\begin{verbatim}
+fpdp1  : "1FLOPS_INSTRUCTIONS";
+fpdp2  : "2FLOPS_INSTRUCTIONS";
+fpdp4  : "4FLOPS_INSTRUCTIONS";
+fpdp8  : "8FLOPS_INSTRUCTIONS";
+fpdp16 : "16FLOPS_INSTRUCTIONS";
+\end{verbatim}
+\end{small}
+\end{quote}
+The total number of HWPC floating point operations
+is calculated as the sum of single precision and double precision operations.
+\begin{align}
+	\mathrm{W}_{hwpc} & = \mathrm{fpdp1} + 2.0*\mathrm{fpdp2} + 4.0*\mathrm{fpdp4} \nonumber \\
+			& + 8.0*\mathrm{fpdp8} + 16.0*\mathrm{fpdp1} 
+\end{align}
 
 \begin{figure}[tb]
 \centering
@@ -710,7 +738,7 @@ system performance based on the HWPC workload.
 \label{fig:roofline-fx100}
 \end{figure}
 
-In both of these figures,
+In both figures,
 the performance of add/mult/fma tends to improve with an increase of
 the loop length until the L1 cache size limit is reached,
 and subsequently drops to the bandwidth constrained performance level
@@ -723,13 +751,25 @@ envelop which is shown in Fig.~\ref{fig:roofline-fx100}
 The performance of div/sqrt/mix shows quite different tendency, and
 their system performance stays much higher than the user performance.
 
-PMlib HWPC report for this case is shown in Table~\ref{tab:PMlib-report-HWPC}.
-Native HWPC events are sorted according to the choice of the
-environment variable HWPC\_CHOOSER=VECTOR as explained in
-\ref{subsection:Choosing-workload-type} for user evaluation.
+Partial results extracted from PMlib HWPC report are shown
+in Table~\ref{tab:PMlib-report-HWPC}.
+%
+\begin{table}[bt]
+\centering
+\caption{PMlib HWPC events for HWPC\_CHOOSER}
+\label{tab:PMlib-report-HWPC}
+\scriptsize %\tiny %\scriptsize %\footnotesize %\small
+% \input{figs/stdout.PMlib-report-HWPC.txt}
+\input{figs/table.PMlib-report-HWPC.tex}
+\end{table}
+%
+The environment variable HWPC\_CHOOSER explained in
+\ref{subsection:Choosing-workload-type} is set to VECTOR in this case,
+and the native HWPC events related with vectorization are sorted and reported.
+
 According to the report,
 the number of required operations for division is almost an order of magnitude
-larger than that for addition, even though their arithmetic workload
+more than that for addition, even though their arithmetic workload
 is the same.
 Compiler optimization transforms
 a division arithmetic statement into a series of reciprocal
@@ -737,11 +777,22 @@ approximation and multiply-add instructions, rather than issuing
 a simple division instruction. They take advantage of pipelined sequence of
 SIMD instructions and maintain high flop/byte ratio.
 So the apparent system performance of this operation becomes very high,
-but the user performance is much lower, almost the same as
+but the actual user performance is much lower, almost the same as
 add/mult in this case. In fact, divide kernel runs much slower than add/mult,
 if not pipelined at all.
 The comparison of system/user performance ratio is shown in
-Table~\ref{tab:ratio-system-user-fx100}. The numbers in the table can be
+Table~\ref{tab:ratio-system-user-fx100}.
+\begin{table}[bt]
+\centering
+\caption{ratio of system/user performance of FX100 for basic kernels}
+\label{tab:ratio-system-user-fx100}
+\begin{tabular}{l|c|c|c|c|c|c} \hline
+type &	add	&	mult &	fma &	div &	sqrt &	mix \\ \hline
+ratio &	1.0 &	1.0 &	1.0 &	12.0 &	18.0 &	38.0 \\ \hline 	
+\end{tabular}
+\end{table}
+%
+The numbers in the table can be
 directly obtained from HWPC\_CHOOSER=FLOPS setting.
 %	This causes the difference between 
 %	Figure~\ref{fig:fx100-gflops-user-long-R8}
@@ -750,33 +801,11 @@ directly obtained from HWPC\_CHOOSER=FLOPS setting.
 %	.
 Without having to read the assembly code generated by the compiler,
 users can capture some idea from the statistics of PMlib HWPC report.
-\begin{table}[tb]
-%	\begin{center}
-%	\scriptsize
-\centering
-\caption{PMlib HWPC report(edited)}
-\label{tab:PMlib-report-HWPC}
-\footnotesize
-\input{figs/stdout.PMlib-report-HWPC.txt}
-%	\end{center}
-\end{table}
 
-The reason for div/sqrt/mix performance curves not having the drop near
-the L1 cache size limit is explained by the high computational density.
-\begin{table}[tb]
-%	\scriptsize
-%	\begin{center}
-\centering
-\caption{ratio of system/user performance of FX100 for basic kernels}
-\label{tab:ratio-system-user-fx100}
-%	\footnotesize
-\begin{tabular}{l|c|c|c|c|c|c} \hline
-%	\scriptsize
-type &	add	&	mult &	fma &	div &	sqrt &	mix \\ \hline
-ratio &	1.0 &	1.0 &	1.0 &	12.0 &	18.0 &	38.0 \\ \hline 	
-\end{tabular}
-%	\end{center}
-\end{table}
+The reason for the system performance curves of div/sqrt/mix
+not having the drop near the L1 cache size limit
+is explained by the high computational density which hides the
+data supply bandwidth.
 
 
 \subsection{Kernel performance on FX100 in short loops}
@@ -808,8 +837,7 @@ In double precision arithmetic the resulting widest interval is
 256 / 64 = 4
 \end{math}
 .
-So the performance is expected to be most efficient at $ 4n $, then $ 4n+1 $,
-followed by $ 4n+2 $, and lowest at $ 4n+3 $.
+So the performance is expected to be efficient at $ n=4,8,12,\cdots $.
 Fig.~\ref{fig:fx100-gflops-short-R8} verifies such expectation.
 It highlights the fact that
 program coding practices that maintain the loop length as a multiple of
@@ -835,61 +863,30 @@ Fig.~\ref{fig:fx100-gflops-short-R4} for FX100.
 \label{fig:fx100-gflops-short-R4}
 \end{figure}
 
-The HWPC events for floating point operations on FX100 are
-sorted in SIMD width as represented below.
-\begin{figure}[H]
-\begin{quote}
-\begin{small}
-\begin{verbatim}
-fpdp1  : "1FLOPS_INSTRUCTIONS";
-fpdp2  : "2FLOPS_INSTRUCTIONS";
-fpdp4  : "4FLOPS_INSTRUCTIONS";
-fpdp8  : "8FLOPS_INSTRUCTIONS";
-fpdp16 : "16FLOPS_INSTRUCTIONS";
-\end{verbatim}
-\end{small}
-\end{quote}
-\end{figure}
-Both the single precision operations and the double precision operations are
-summed up to the same event sets.
 
-\begin{align}
-	\mathrm{W}_{hwpc} & = \mathrm{fpdp1} + 2.0*\mathrm{fpdp2} + 4.0*\mathrm{fpdp4} \nonumber \\
-			& + 8.0*\mathrm{fpdp8} + 16.0*\mathrm{fpdp1} 
-\end{align}
-
-{\color{blue} HWPC short loop はスライドで追加して説明}
-
-
-{\color{blue}
 \subsection{Kernel performance on SKY in short loops}
 \label{subsection:short-kernels-sky}
-}
+
+The performance measurement is also conducted on SKY.
+We focus on the short loop region, again.
 Fig.~\ref{fig:sky-user-short-R8}
 shows the double precision user performance of the same basic kernels on SKY.
-The overall line shape appears similar to Fig.~\ref{fig:fx100-gflops-short-R8},
-i.e.  stepping shapes at $ 4n $.
-Since SKY supports wider SIMD instructions called avx512, this shape
-is somewhat un-expected.
+The overall line shapes appear similar to that of FX100,
+i.e.  stepping shapes at $ n=4,8,12,\cdots $.
+Since SKY supports 512-bit wide SIMD instructions called avx512,
+the stepping interval is expected to be
+\begin{math}
+512 / 64 = 8
+\end{math}
+.
 Checking the PMlib HWPC reports tells that the kernels are executed
-mostly using 256-bit instructions, and that no 512-bit instruction was executed.
-Further check in the assembly code matched this report.
-
-Learning above information, rather explicit option "-xcommon-avx512"
-is added to the compiler, and the revised test results are shown in
-Fig.~\ref{fig:sky-user-short-R8}
-{\color{blue} Remark. Change the figure and it number!}
-
-
-Fig.~\ref{fig:sky-user-short-R8}
-The line shape appears very different from that of FX100.
-The performance increases according to $ n $, and slightly drops
-at $ n+1 $.
-
-{\color{blue} Remark. Change the figure and it number!}
-The single precision user performance is similar as shown in
-fig.~\ref{fig:sky-user-short-R4} .
-
+mostly using 256-bit wide SIMD instructions, not 512-bit.
+Further check into the assembly code matched this report.
+Knowing this, a compiler option is added to force producing 512-bit instructions.
+The revised test results are shown in
+Fig.~\ref{fig:sky-user-short-R8-avx512}.
+Steppings are now observed at $ n=8,16,\cdots $, but in different shapes.
+This revised performance obviously reflects the effect of compiler optimization.
 
 \begin{figure}[tb]
 \centering
@@ -897,13 +894,27 @@ fig.~\ref{fig:sky-user-short-R4} .
 \caption{SKY user performance close up}
 \label{fig:sky-user-short-R8}
 \end{figure}
+%
 \begin{figure}[tb]
 \centering
-\includegraphics[width=0.45\textwidth]{figs/sky-user-short-R4.pdf}
-\caption{SKY user performance close up for single precision kernels}
-\label{fig:sky-user-short-R4}
+\includegraphics[width=0.45\textwidth]{figs/sky-user-short-R8-avx512.pdf}
+\caption{SKY user performance close up forcing 512-bit SIMD}
+\label{fig:sky-user-short-R8-avx512}
 \end{figure}
-
+%
+% \if 0
+% Well, no space again. I will delete this interesting picture...
+% The single precision user performance is similar as shown in
+% fig.~\ref{fig:sky-user-short-R4} .
+% \begin{figure}[tb]
+% \centering
+% \includegraphics[width=0.45\textwidth]{figs/sky-user-short-R4-avx512.pdf}
+% \caption{SKY user performance close up single precision forcing 512-bit SIMD}
+% \label{fig:sky-user-short-R4-avx512}
+% \end{figure}
+%
+% \fi
+%
 % The IVY results are ommited because of paper space.
 %	IVY also shows the similar performance characteristics.
 %	Fig.~\ref{fig:ivy-gflops-short-R8} shows the user performance
@@ -916,9 +927,19 @@ fig.~\ref{fig:sky-user-short-R4} .
 %	\label{fig:ivy-gflops-short-R8}
 %	\end{figure}
 
-These examples demonstrate the usefulness of PMlib user mode
-and HPWC mode measurements in understanding the performance
-within a program block of interest.
+\subsection{Future development}
+\label{subsection:future-development}
+Using PMlib, users are able to obtain various performance information.
+In order to reflect the obtained information to the improvement
+process of user performance, there can be many approaches going forward.
+From PMlib development side,
+one approache would be to report the combined information
+of user workload and system workload.
+If PMlib is able to report the saturated components in the processor hardware
+in relationship to the user defined section in the source program,
+it maybe a useful index to optimize not only the application source
+but also the design of the future hardware.
+Further research is needed to harness such feature.
 
 %
 % No space. STREAM subsection is omitted.
@@ -979,15 +1000,14 @@ within a program block of interest.
 %%
 \section{Conclusion}
 In this paper, we discussed the importance of multi-perspective evaluation
-to understand the difference between the arithmetic workload coded as
-the source program and the system workload executed as machine instructions,
-which explains the gap between the performance
-expected by users and the actually achieved performance on HPC systems.
+to understand the performance characteristics. The difference between
+the arithmetic workload coded as the source program and the system workload
+executed as machine instructions explains the gap between the user expected
+performance and the actually achieved performance on HPC systems.
 We presented an open source library called PMlib, which analyzes the behavior
 of these workloads.
 PMlib provides an avenue for reporting the arithmetic/application workload
-that is manually counted from a source code, as well as the actually executed
-system workload.
+as well as the actually executed system workload.
 It also provides detailed utilization reports of processor-specific hardware
 including the SIMD instruction statistics, the layered cache
 hit/miss rate, and the effective memory bandwidth,
