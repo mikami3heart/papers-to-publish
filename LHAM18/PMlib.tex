@@ -69,7 +69,7 @@ processor core and memory is of significance.
 An open source library called PMlib was developed to address these types
 of synthetic evaluations.
 PMlib provides an avenue for reporting the arithmetic/application workload
-that is manually counted from a source code,
+explicitly coded in the source program,
 as well as the actually executed system workload.
 It also provides detailed utilization reports of processor-specific hardware
 including the categorized SIMD instruction statistics, the layered cache
@@ -100,10 +100,10 @@ elapsed time.
 % Depending on the type of scientific applications and HPC systems,
 % it is often observed that
 The sustained computational performance of applications is often much
-lower than what is expected based on the system specifications.
+lower than what is expected based on the system specification.
 Preceding studies that investigated the origin of this gap between
 the expected performance and the actual performance addressed it
-primarily from an architecture perspective, e.g., 
+primarily from the architecture perspective, e.g., 
 utilization of parallel functional units,
 and locality of data residing on memory/cache hierarchy.
 
@@ -192,19 +192,21 @@ Gflops = N^{2} \times ( 2/3 * N + 3/2 ) \times 1.0^{-9} / Time
 \end{align}
 
 
-% In order to simply map the relationship between the source level arithmetic
-% and the corresponding assembly instructions,
-% we can apply weight factors to \eqref{eq:arithmetic-workload}.
 Above workload and performance concept using the arithmetic operations
 can be extended to model the actually executed workload and performance.
 Compilers translate the arithmetic statements into the sequence of
 assembly instructions.
 The simplest approach to map the relationship between
 the source level arithmetic and the corresponding assembly instructions
-would be to apply weight factors.
-A weight factor $ c(i) $ is assumed to represent the combined effect of
-the latency and throughput of the instructions needed for $ i $-th
-arithmetic type.  Then the workload is represented as:
+would be to apply weight factors  to \eqref{eq:arithmetic-workload}.
+%
+Representing the combined effect of the latency and throughput of the
+instructions needed for $ i $-th arithmetic type
+by weight factor $ c(i) $, the workload is expressed as:
+%
+% A weight factor $ c(i) $ is assumed to represent the combined effect of
+% the latency and throughput of the instructions needed for $ i $-th
+% arithmetic type.  Then the workload is represented as:
 \begin{equation}\label{eq:application-workload}
 		Workload = \sum_{i=1}^{types} \left(c(i)\times W_{ops}(i)\right)
 \end{equation}
@@ -213,9 +215,13 @@ The workload in the form of \eqref{eq:application-workload}
 is termed ``application workload'' in this paper.
 It approximates the actually executed system workload in a simple form
 and ``application performance'' can be defined in the same manner.
-It can be a useful model in qualitative analyses.
-However, the adaptivity of the application workload and performance is limited
-in quantitative evaluations.
+%
+% It can be a useful model in qualitative analyses.
+%
+The application workload defined as \eqref{eq:application-workload}
+can provide the base for analytical evaluations.
+However, its usefulness is limited to certain qualitative comparison
+for the following reasons.
 The mapping of mathematical functions to native instructions 
 depends on not only the system architecture but also the compilers.
 There are multiple choices of available instructions to accomplish an
@@ -226,7 +232,7 @@ the its optimization strategy, as well as the degree of parallelism
 according to the loop length and the operation density.
 Therefore, the mapping needs to be examined case by case
 in quantitative evaluations.
-With this reason, the actually executed system workload is better evaluated
+With these reasons, the actually executed system workload is better evaluated
 from the system perspective as discussed next.
 
 %
@@ -251,9 +257,10 @@ including categorized SIMD instructions,
 layered cache hit/miss counts,
 and memory load/store instuctions.
 HWPC statistics can be accessed through appropriate APIs.
-For example, floating point operations on
-Intel Xeon Skylake Gold processor % no citation \cite{skylake-1} 
-are measured with PAPI API as the following events.
+For example, floating point operation related events on
+Intel Xeon Skylake processor % no citation \cite{skylake-1} 
+which is used in section \ref{subsection:short-kernels-sky}
+can be accessed using PAPI API as the following events.
 \vspace{1mm}
 %	\begin{lstlisting}[caption={Intel Xeon Skylake f.p. SIMD operations}]
 %	\end{lstlisting}
@@ -272,9 +279,17 @@ fpdp8  : "FP_ARITH:512B_PACKED_DOUBLE";
 \end{small}
 \end{quote}
 \vspace{1mm}
-The sum of these operations multiplied by the corresponding width
-of the SIMD instruction gives the floating point operation workload
-including single precision (32-bit) and double precision (64-bit) data types.
+%
+The floating point operation workload is obtained from
+these event counts multiplied by the corresponding width of the instructions.
+The total number of
+single precision (32-bit) and double precision (64-bit) 
+floating point operations is:
+%
+% The sum of these operations multiplied by the corresponding width
+% of the SIMD instruction gives the floating point operation workload
+% including single precision (32-bit) and double precision (64-bit) data types.
+%
 %	\begin{multline}
 %	W_{hwpc} = fpsp1 + fpdp1 \\
 %		+ 4.0*fpsp4 + 8.0*fpsp8 + 16.0*fpsp16 \\
@@ -298,13 +313,15 @@ In this section, an example is presented that illustrates the significant
 difference between the user perspective arithmetic workload and
 the system perspective HWPC workload.
 
-Fig.~\ref{fig:workload-user} and Fig.~\ref{fig:workload-system} show
-the performance results based on the workload defined in the above context.
-The vertical axis represents the performance corresponding to the workload as
-defined by \eqref{eq:performance-workload-time}.
-In order to obtain these results, the PMlib user mode report and PMlib HWPC
-mode reports were used.
 % IVY case
+Fig.~\ref{fig:workload-user} shows the user performance
+and Fig.~\ref{fig:workload-system} shows the system performance
+of the same kernels selected from section \ref{subsection:basic-kernels}
+on IVY server listed in \ref{tab:server-config}.
+PMlib user mode report and HWPC mode report are used to obtain these results.
+The vertical axis shows the performance per core
+defined by \eqref{eq:performance-workload-time},
+corresponding to their workloads.
 Fig.~\ref{fig:workload-difference} shows the difference between these two
 parameters as a ratio.
 %
@@ -318,7 +335,7 @@ parameters as a ratio.
 %
 The execution elapsed time
 of Fig.~\ref{fig:workload-user} and Fig.~\ref{fig:workload-system} are
-almost identical, and the difference observed in
+basically identical, and the difference observed in
 Fig.~\ref{fig:workload-difference} 
 actually represents the difference in the workload definition.
 The ratio ranges from 1.0 to 2.5 depending on the type of
@@ -355,9 +372,8 @@ arithmetic operation, and it varies depending on the loop length.
 
 This simple example clearly indicates that the performance evaluation of
 scientific applications on HPC systems must be associated with a clear
-definition of workload. The example also suggests that if conditions allow,
-the evaluation should be
-conducted for both user and system perspectives.
+definition of workload. The example also suggests that, if conditions allow,
+the evaluation should be conducted for both user and system perspectives.
 A detailed analysis of a similar example is given in section
 \ref{subsection:basic-kernels}.
 
