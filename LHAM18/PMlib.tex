@@ -126,10 +126,11 @@ using a manually formulated argument, as well as the functionality
 to automatically measure the system workload based on the statistics
 obtained from the hardware performance counters (HWPC),
 thus providing users the option to compare the difference in workloads.
-In measuring HWPC events, PMlib utilizes PAPI~\cite{PAPI:5.6} low-level API.
-PMlib has its own scheme for choosing related HWPC event sets and for sorting
-out event statistics according to the run-time environment variables, making it
-easier to extract the statistics of interest.
+To access HWPC events, PMlib utilizes PAPI~\cite{PAPI:5.6} low-level API,
+which supports number of processors typically used for HPC applications.
+PMlib has its own scheme for choosing the related HWPC event sets and sorting
+out event statistics according to the run-time environment variables,
+thus making it easier to extract the statistics of interest.
 
 This paper first clarifies the difference between the arithmetic workload and
 the system workload.
@@ -232,7 +233,7 @@ the its optimization strategy, as well as the degree of parallelism
 according to the loop length and the operation density.
 Therefore, the mapping needs to be examined case by case
 in quantitative evaluations.
-With these reasons, the actually executed system workload is better evaluated
+With this reason, the actually executed system workload is better evaluated
 from the system perspective as discussed next.
 
 %
@@ -338,8 +339,8 @@ of Fig.~\ref{fig:workload-user} and Fig.~\ref{fig:workload-system} are
 basically identical, and the difference observed in
 Fig.~\ref{fig:workload-difference} 
 actually represents the difference in the workload definition.
-The ratio ranges from 1.0 to 2.5 depending on the type of
-arithmetic operation, and it varies depending on the loop length.
+The ratio ranges from 1.0 to 2.6 depending on the type of
+arithmetic operation, and it also varies depending on the loop length.
 
 %	\begin{figure}[tb]
 %	\centering
@@ -371,9 +372,9 @@ arithmetic operation, and it varies depending on the loop length.
 \end{figure}
 
 This simple example clearly indicates that the performance evaluation of
-scientific applications on HPC systems must be associated with a clear
-definition of workload. The example also suggests that, if conditions allow,
-the evaluation should be conducted for both user and system perspectives.
+scientific applications on HPC systems must be associated with the clear
+definition of workload, and suggests that the evaluation
+from both the user and the system perspectives should be conducted.
 A detailed analysis of a similar example is given in section
 \ref{subsection:basic-kernels}.
 
@@ -381,18 +382,19 @@ A detailed analysis of a similar example is given in section
 \section{Performance Monitoring Library}
 \label{section:PMlib}
 
-%
 \subsection {Overview of PMlib}
 PMlib is an open source library for monitoring the performance of scientific
-applications and is able to measure the listed types of workload discussed
-in the previous section, i.e. arithmetic, application, and HWPC workloads.
-Users can insert start/stop API statements provided in the source code.
-Each measurement section has minimal properties such as name, type of operation,
-exclusiveness, and workload value.
-The reports from PMlib is classified into threads, processes, and sections
+applications and is able to measure the arithmetic, application and HWPC
+workload discussed in section
+\ref{subsection:user-perspective} and \ref{subsection:system-perspective}.
+PMlib defines a small number of properties such as name, type of operation,
+exclusiveness, and workload values to the specified
+block within a source program called section.
+Actual location of the section is decided by PMlib start and stop APIs,
+and there can be multiple locations to form a single section.
+The report from PMlib is sorted by sections, processes and threads,
 depending on the controlling environment variable.
 
-%
 \subsection{PMlib API}
 %\label{subsection:PMlib-API}
 PMlib provides APIs for C++ and Fortran programs.
@@ -401,18 +403,20 @@ C++ APIs are shown in Table~\ref{tab:PMlib-API}.
 
 \begin{table}[tb]
 %\tiny %\scriptsize %\footnotesize %\small
-\footnotesize
+%	\footnotesize
 %	\scriptsize
+\small
 \caption{list of basic APIs provided by PMlib}
 \label{tab:PMlib-API}
 \begin{tabular}{l|l|l} \hline
 C++	& function	&	arguments	\\ \hline \hline
-initialize	& initial setup	& number of sections \\ %\hline
-setProperties	& set sections property	& label, type, exclusiveness \\ %\hline
-start	& start of section	& label \\ %\hline
-stop	& end of section	& label, arithmetic workload \\ %\hline
-print	& basic report	& filename, comments, sort order	\\ %\hline \hline
-printDetail	& per process report	& filename, legend, sort order	\\ %\hline
+initialize		& initial setup	& number of sections \\ %\hline
+setProperties	& sections property	& label, type, exclusiveness \\ %\hline
+start		& start of section	& label \\ %\hline
+stop		& end of section	& label, arithmetic workload \\ %\hline
+print		& basic report	& filename, comment, sorting	\\ %\hline \hline
+printDetail	& per process report	& filename, legend, sorting	\\ %\hline
+printThreads	& per thread report	& filename, rankID, sorting	\\ %\hline
 \end{tabular}
 \end{table}
 
@@ -474,16 +478,16 @@ Fig.~\ref{fig:ccaebt4PMlib} shows the schematic view to accomplish this flow.
 
 If the HWPC workload is measured,
 PMlib internally utilizes PAPI low-level APIs to access HWPC event statistics.
-PAPI has its own event mnemonics for each type of processor,
-and choosing a set of native PAPI events can be troublesome.
+Each type of processor defines many HWPC events.
 For instance, the standard output from $ papi\_native\_avail $ command on a
-Skylake server produces 5000+ lines.
+Skylake processor produces 5000+ lines.
 PMlib detects the type of processor,
 chooses the appropriate native PAPI event sets
 and translates the raw event statistics into the desired
 performance category according to HWPC\_CHOOSER.
-The user given operation count arguments are discarded in HWPC mode.
-PMlib preserves the source code portability in both user mode and HWPC mode.
+The application developpers do not have to worry about
+the different PAPI event mnemonics on different processors.
+In HWPC mode, user given operation count arguments are discarded.
 
 \subsection{High-resolution timer available to PMlib}
 PMlib utilizes the Linux standard timer gettimeofday() by default.
@@ -507,7 +511,8 @@ The default output information from PMlib is a blocked text report based on
 the time-averaged performance statistics.
 PMlib is also able to produce the
 Open Trace Format (OTF)~\cite{Knupfer:2006},~\cite{OTF:webpage-public}
-tracing files that may contain the shorter interval statistics for visualization.
+tracing file that enables the detail time-history visualization of
+the shorter interval statistics.
 %
 %	In future papers, we may include TRAiL contents
 %
@@ -526,13 +531,14 @@ Numerous tools have been developed to evaluate the performance of HPC systems.
 In general, open source tools are designed to be portable.
 Their functionalities are distinct and in many cases, multiple tools
 are used in sequence to obtain the desired performance information.
-These tools are classified as either sampling or tracing tools and they each have different overheads.
+These tools are classified as either sampling or tracing tools
+and they each have different overheads.
 Commercial vendor tools are used for many HPC systems.
 They are best used for specific processor types.
-HPC systems vendors also supply performance evaluation tools
-that are native to their systems.
-They are integrated into systems and are easy to use in general,
-but availability is limited to only the vendor's HPC systems.
+HPC systems vendors also supply performance evaluation tools for their systems.
+Those vendor tools are integrated into systems
+and are easy to use in general,
+while the availability is limited to specific systems.
 
 Some of the commonly used tools are listed below.
 In the open source category:
@@ -564,31 +570,33 @@ Some examples of performance evaluation utilizing PMlib are shown in this sectio
 The tested programs are the basic kernels composed of
 four basic arithmetic operations, square root and reversed distance.
 The kernels repeat the same operations with loop length hidden to the compiler.
+The kernels are expected to be executed using pipelined SIMD instructions
+on the measuring HPC systems.
 %
 The Fortran source of these kernels is shown below.
 %	\begin{lstlisting}[caption={basic kernels (partial list)}]
 \begin{lstlisting}
-subroutine sub_add(a,b,c,n)
+subroutine add(a,b,c,n)
 	do i=1,n
 	c(i)=a(i)+b(i)
 	end do
-subroutine sub_mult(a,b,c,n)
+subroutine mult(a,b,c,n)
 	do i=1,n
 	c(i)=a(i)*b(i)
 	end do
-subroutine sub_fma(a,b,c,d,n)
+subroutine fma(a,b,c,d,n)
 	do i=1,n
 	c(i)=a(i)+b(i)*d
 	end do
-subroutine sub_divide(a,b,c,n)
+subroutine divide(a,b,c,n)
 	do i=1,n
 	c(i)=b(i)/a(i)
 	end do
-subroutine sub_sqrt(a,b,c,n)
+subroutine sqrt(a,b,c,n)
 	do i=1,n
 	c(i)=sqrt(a(i))
 	end do
-subroutine sub_mix(a,b,c,n)
+subroutine mix(a,b,c,n)
 	do i=1,n
 	c(i)=1.0/sqrt(a(i)**2+b(i)**2)
 	end do
@@ -596,7 +604,6 @@ subroutine sub_mix(a,b,c,n)
 
 The choice of data precision, either double or single, is made at compile time,
 and the default optimization is done by the compilers.
-The intent is to exploit pipelined SIMD operations on the measuring systems.
 The copies of the same kernel are run on all cores of the processor.
 The kernels are called many times.  After the calling overhead is subtracted,
 the average elapsed time including the do loop overhead cost is obtained.
@@ -774,8 +781,8 @@ in Table~\ref{tab:PMlib-report-HWPC}.
 \centering
 \caption{PMlib HWPC events for HWPC\_CHOOSER}
 \label{tab:PMlib-report-HWPC}
-\scriptsize %\tiny %\scriptsize %\footnotesize %\small
-% \input{figs/stdout.PMlib-report-HWPC.txt}
+%\tiny %\scriptsize %\footnotesize %\small
+\footnotesize %\small
 \input{figs/table.PMlib-report-HWPC.tex}
 \end{table}
 %
@@ -796,10 +803,12 @@ So the apparent system performance of this operation becomes very high,
 but the actual user performance is much lower, almost the same as
 add/mult in this case. In fact, divide kernel runs much slower than add/mult,
 if not pipelined at all.
+
 The comparison of system/user performance ratio is shown in
 Table~\ref{tab:ratio-system-user-fx100}.
 \begin{table}[bt]
 \centering
+\small
 \caption{ratio of system/user performance of FX100 for basic kernels}
 \label{tab:ratio-system-user-fx100}
 \begin{tabular}{l|c|c|c|c|c|c} \hline
@@ -856,7 +865,7 @@ In double precision arithmetic the resulting widest interval is
 So the performance is expected to be efficient at $ n=4,8,12,\cdots $.
 Fig.~\ref{fig:fx100-gflops-short-R8} verifies such expectation.
 It highlights the fact that
-program coding practices that maintain the loop length as a multiple of
+program coding practices to maintain the loop length as a multiple of
 the SIMD width has a significant impact on the user performance
 in short loop computation.
 \begin{figure}[tb]
@@ -883,11 +892,11 @@ Fig.~\ref{fig:fx100-gflops-short-R4} for FX100.
 \subsection{Kernel performance on SKY in short loops}
 \label{subsection:short-kernels-sky}
 
-The performance measurement is also conducted on SKY.
+The same performance measurement is conducted on SKY.
 We focus on the short loop region, again.
 Fig.~\ref{fig:sky-user-short-R8}
 shows the double precision user performance of the same basic kernels on SKY.
-The overall line shapes appear similar to that of FX100,
+The overall line shapes of add and fma appear similar to those of FX100,
 i.e.  stepping shapes at $ n=4,8,12,\cdots $.
 Since SKY supports 512-bit wide SIMD instructions called avx512,
 the stepping interval is expected to be
@@ -903,7 +912,7 @@ The revised test results are shown in
 Fig.~\ref{fig:sky-user-short-R8-avx512}.
 Steppings are now observed at $ n=8,16,\cdots $, but in different shapes.
 This revised performance obviously reflects the effect of compiler optimization.
-
+%
 \begin{figure}[tb]
 \centering
 \includegraphics[width=0.45\textwidth]{figs/sky-user-short-R8.pdf}
@@ -917,6 +926,12 @@ This revised performance obviously reflects the effect of compiler optimization.
 \caption{SKY user performance close up forcing 512-bit SIMD}
 \label{fig:sky-user-short-R8-avx512}
 \end{figure}
+
+The overall line shapes of divide and sqrt appear low and flat compared
+to those of FX100,
+This indicates that the executed instructions were not pipelined,
+and their latency dominates the performance.
+
 %
 % \if 0
 % Well, no space again. I will delete this interesting picture...
@@ -945,17 +960,16 @@ This revised performance obviously reflects the effect of compiler optimization.
 
 \subsection{Future development}
 \label{subsection:future-development}
-Using PMlib, users are able to obtain various performance information.
-In order to reflect the obtained information to the improvement
-process of user performance, there can be many approaches going forward.
-From PMlib development side,
-one approache would be to report the combined information
-of user workload and system workload.
-If PMlib is able to report the saturated components in the processor hardware
-in relationship to the user defined section in the source program,
+Using PMlib, users are able to obtain various performance information
+to understand the behavior of applications.
+In order to reflect the obtained information to improve the performance
+of user applications, there can be many approaches going forward.
+One approache would be enhance the report from PMlib.
+If PMlib is able to report the saturated units in a processor hardware
+related to the user defined section in the source program,
 it maybe a useful index to optimize not only the application source
 but also the design of the future hardware.
-Further research is needed to harness such feature.
+Further research is needed to harness such capability.
 
 %
 % No space. STREAM subsection is omitted.
@@ -1035,7 +1049,10 @@ thus enabling the users to obtain useful feedback for further optimizations
 and better performance.
 
 \section*{Acknowledgment}
-This research used some computational resources of the K computer at the RIKEN Center for Computational Science in Kobe, Japan, and was carried out using the computer resources offered under the category of a general project by the Research Institute for Information Technology, Kyushu University.
+This research was carried out using computational resources of FX100 and
+the K computer at the RIKEN Center for Computational Science in Kobe, Japan,
+and the computer resources offered under the category of a general project
+by the Research Institute for Information Technology, Kyushu University.
 %	\section*{References}
 \bibliographystyle{jplain}
 \bibliography{PMlib}
