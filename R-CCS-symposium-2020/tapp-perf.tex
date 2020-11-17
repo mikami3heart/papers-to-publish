@@ -1,0 +1,123 @@
+\documentclass[conference]{IEEEtran}
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage[dvipdfmx]{graphicx}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\definecolor{blue}{rgb}{0.00, 0.00, 1.00}
+\usepackage{listings}
+\usepackage{datetime2}
+\usepackage{algorithm}
+\usepackage{algorithmicx}
+\usepackage{algpseudocode}
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+\input{lstset.sty}
+
+\begin{document}
+
+\title{
+Target applications performance estimation through the codesign of Fugaku computer
+}
+
+% double blinded proof reading version
+% \if 0
+\author{
+\IEEEauthorblockN{1\textsuperscript{st} Kazunori Mikami}
+\IEEEauthorblockA{\textit{Flagship 2020 Project} \\
+\textit{Riken R-CCS}\\
+kazunori.mikami@riken.jp}
+\and
+\IEEEauthorblockN{2\textsuperscript{nd} Hirofumi Tomita}
+\IEEEauthorblockA{\textit{Flagship 2020 Project} \\
+\textit{Riken R-CCS}\\
+htomita@riken.jp}
+\and
+\IEEEauthorblockN{3\textsuperscript{rd} Soichiro Suzuki}
+\IEEEauthorblockA{\textit{Flagship 2020 Project} \\
+\textit{Riken R-CCS}\\
+soichiro.suzuki@riken.jp}
+\and
+\IEEEauthorblockN{4\textsuperscript{th} Kazuo Minami}
+\IEEEauthorblockA{\textit{Flagship 2020 Project} \\
+\textit{Riken R-CCS}\\
+minami\_kaz@riken.jp}
+}
+% double blinded proof reading version
+% \fi
+
+\maketitle
+
+\begin{abstract}
+
+The target applications representing the nine social and scientific priority issues
+were chosen for codesigning Fugaku computer, a.k.a. post-K.
+Each of the nine target applications represents the typical work load in the
+originating priority issue.  They cover different numerical schemes,
+the different space and time discretization types, the different grid structure,
+the different data elements.
+Consequently, they show quite different computing characteristics and exhibit
+the bottle necks in the system's different components.
+Addressing and relaxing the performance bottle necks of the target applications
+is expected to help improving the computational performance of the applications,
+not only in the priority issues but also in the wide range of high performance
+computing demand on Fugaku.
+The list of target applications and their objectives, the numerical algorithm,
+the computing characteristics and the estimated performance will be shown in the poster.
+
+The target applications undergo many performance analyses by using various tools.
+The tools can be categorized, for example, as below:
+\begin{itemize}
+    \item software simulator executed on non-Fugaku platform.
+    \item performance estimation tool based on precise PA data from FX100.
+    \item hardware emulator
+    \item Fugaku prototype test vehicle
+\end{itemize}
+There are multiple simulators and estimation tools for supporting different user/usage.
+The output example from these tools will be shown in the poster.
+
+For each design and update of the application, detail analysis is
+conducted in order to identify the latest computing bottle neck,
+and the corresponding feasibility study of system design is requested
+to the system development and the manufacturing vendor,
+expecting the improved system design parameters.
+The updated system design in turn provides the target applications
+the opportunity of further optimization from different perspectives.
+Thus, after all, the codesign of the target applications and Fugaku computer
+is effectively the repeated procedure of mutual optimization
+in terms of performance, power and economy.
+The design of Fugaku allows the user to choose the processor operating frequency
+and the mode of economy. Although the default Fugaku operation should provide
+the efficient environment for most of the applications, the users will be able to
+explicitly set up the best combination for their applications,
+as the target application developers do.
+The estimated performance under the restricted power consumption will be
+shown in the poster.
+
+The codesign in the early stage can contribute to the design of systems architecture
+such as the processor and memory specification and configuration,
+and the codesign in the later stage can contribute to the design of system software
+such as compilers and libraries.
+Ideally, the codesign of Fugaku and the applications can be completed at the same time.
+Some codesign achievements reflected to the system will be shown in the poster.
+
+
+Target applications reference~\cite{tapp-performance:webpage-public}.
+
+\end{abstract}
+
+\begin{IEEEkeywords}
+Fugaku computer,
+Target application,
+Priority issue,
+Performance estimation,
+Codesign
+\end{IEEEkeywords}
+
+%	\section{Introduction}
+%	\section{Conclusion}
+\bibliographystyle{jplain}
+\bibliography{tapp-perf}
+\end{document}
+
