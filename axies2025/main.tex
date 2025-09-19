@@ -1,0 +1,115 @@
+% axiesproc クラスを利用します.
+% このクラスは jsarticle に依存し, ひいては pLaTeX2e を要求します
+\documentclass{jsaxiesproc}
+
+% 必要に応じ, 適宜パッケージを追加してください.
+% usepackage{amsmath}
+
+% 和文タイトル
+\title{
+	RAGで最適化した生成AIによるHPCユーザ向けサービスの実現
+}
+% 和文著書.
+% 複数所属の場合, 右肩に片括弧数字を付与してください. Authblk には対応していません)
+\author{
+三上和徳$^{1,a)}$,
+中村宜文$^{1,b)}$,
+庄司文由$^{1,c)}$
+}
+
+% 和文所属. 所属ごとに改行 '\\' を入れてください
+\affiliation{
+1) 理化学研究所 計算科学研究センター
+}
+
+% コンタクトe-mail
+\contactemail{
+a)kazunori.mikami@riken.jp,
+b)nakamura@riken.jp,
+c)shoji@riken.jp
+}
+
+% 英文タイトル
+\etitle{
+	Realization of HPC User Services Using Generative AI Optimized with RAG
+}
+
+% 英文著者. 和文所属と同様です
+\eauthor{
+Kazunori Mikami$^{1,a)}$,
+Yoshifumi Nakamura$^{1,b)}$,
+Fumiyoshi Shoji$^{1,c)}$
+}
+
+% 英文所属. 和文所属と同様です
+\eaffiliation{
+1) RIKEN Center for Computational Science
+}
+
+% 概要
+
+\begin{abstract}
+理化学研究所計算科学研究センター（R-CCS）ではスーパーコンピュータ「富岳」のユーザから寄せられる様々な技術的質問や要望へのサポートを行う「富岳サポートサイト」におけるサービスの一環として、2024年度から生成AIによるサービスを加え、ユーザ自身による迅速な自己解決を実現するための取り組みを推進している。
+本稿ではR-CCSが生成AIをサービスに採用した経緯、RAGを応用した最適な生成AIサービスの構築、得られた効果などに関して報告を行う。また、同じ生成AI技術を応用してサービスを開始したHPCI利用報告書の閲覧支援サービスについても紹介をする。
+\end{abstract}
+
+\begin{document}
+% \begin{document} 直後に \maketitle コマンドを実施してください.
+\maketitle
+
+\section{ユーザをサポートするサービス基盤}
+
+\subsection{サービス形態の段階的な高度化}
+サービス形態が段階的に高度化してきた経緯について説明
+
+\begin{itemize}
+\item[1.] メールベースでのサポート
+\item[2.] 富岳サポートサイトの開設\\
+	（キーワード：Zendeskを基盤とするチケットサービスへの移行）\\
+	（キーワード：ウエブブラウザUI、チケットサービス）
+\item[3.] 生成AI AskDonaによる自動回答サービスの追加\\
+	（キーワード：生成AI、RAG、自動回答）
+\end{itemize}
+
+
+\section{富岳サポートサイトへの生成AIの導入}
+
+論点：導入背景：ユーザ側でのハードル、運用側でのハードル\\
+論点：ユーザ自身による問題解決の促進\\
+論点：生成AI提供業者数社による概念検証の実施\\
+論点：入札による業者決定。機能強化・改善要望に機動的に対応する業者が選定されたことは重要なポイントであった\\
+
+
+\section{生成AI AskDona}
+
+論点：AskDonaの構成概要\\
+論点：RAGのメリット（回答正解率の高さ、ハルシネーションが起きにくい構成）\\
+論点：富岳サポートサイト専用の知識データベースの構築\\
+論点：チケットサービスと生成AIチャット機能の統合\\
+論点：個人情報の不所持方針\\
+
+
+\section{生成AI導入の効果}
+
+論点：発行チケット数の変化\\
+論点：ユーザからのフィードバック\\
+論点：ユーザの利用方法の変化\\
+論点：課題：ユーザフィードバック率の低さ\\
+論点：課題：人手で対応するチケットサービスの満足度V.S.生成AIサービスの満足度\\
+
+
+\section{HPCI利用報告書の閲覧支援AIサービス}
+論点：同じAI技術の水平展開\\
+論点：HPCI利用課題の検索、論点整理、調査・比較\\
+論点：JHPCN成果報告書の閲覧機能を追加\\
+
+
+％参考文献
+\begin{thebibliography}{99}
+	\bibitem{refjournal} 雑誌の場合：著者名、タイトル、雑誌名 巻、号、ページ、発行年．
+	\bibitem{refbook} 書籍の場合：著者名、書名、参照ページ、発行所、発行年．
+\end{thebibliography}
+\end{document}
+
+% for vim cofiguration
+% vim: set fileformat=unix fileencoding=utf8 filetype=tex
